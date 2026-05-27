@@ -3,7 +3,9 @@ name = "llm2page"
 version = "0.1.0"
 description = "Compile MiniDoc DSL to beautiful HTML pages"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "fastmcp>=3.3.1",
+]
 
 [project.scripts]
 llm2page = "llm2page.cli:main"
