@@ -1,0 +1,138 @@
+@doc title="Acme SaaS — Q3 2026 Board Report" theme=light
+
+# Q3 2026 Board Report
+
+> Acme Inc. · Confidential · Prepared for Board Meeting 2026-09-30
+
+## Financial Highlights
+
+[columns]
+[col]
+[kpi label="ARR" value="$8.4M" target="$9.0M" trend=+34% color=green]
+[/col]
+[col]
+[kpi label="MRR" value="$700K" target="$750K" trend=+28% color=blue]
+[/col]
+[col]
+[kpi label="Gross Margin" value="74%" target="75%" trend=+3% color=green]
+[/col]
+[col]
+[kpi label="Burn Rate" value="$420K" target="<$400K" trend=-5% color=yellow]
+[/col]
+[/columns]
+
+[chart type=line title="ARR Growth ($K)"
+  Q3-2025=3200 Q4-2025=4800 Q1-2026=5900 Q2-2026=7100 Q3-2026=8400
+]
+
+[divider]
+
+## Sales & Pipeline
+
+[columns]
+[col]
+[metric label="New Logos" value="47" trend=+18% color=blue]
+[/col]
+[col]
+[metric label="Pipeline" value="$12.3M" trend=+42% color=purple]
+[/col]
+[col]
+[metric label="Win Rate" value="31%" trend=+4% color=green]
+[/col]
+[col]
+[metric label="Avg Deal Size" value="$178K" trend=+22% color=blue]
+[/col]
+[/columns]
+
+[tabs]
+[tab title="Top Deals"]
+
+[table cols="Account,Segment,Value,Stage,CloseDate,Owner"
+  GlobalBank Corp | Enterprise | $480K | Final Negotiation | Oct 15 | Sarah K.
+  HealthPlus      | Mid-Market | $210K | POC Running       | Oct 28 | Raj M.
+  RetailCo        | Enterprise | $390K | Legal Review      | Nov 5  | Sarah K.
+  TechStartup X   | SMB        | $95K  | Verbal Commit     | Oct 10 | Tom L.
+  ManuCorp        | Mid-Market | $175K | Discovery         | Nov 20 | Raj M.
+]
+
+[/tab]
+[tab title="Pipeline by Stage"]
+
+[chart type=bar title="Pipeline Value by Stage ($K)"
+  Prospecting=1800 Discovery=2400 POC=3100 Negotiation=2900 Legal=2100
+]
+
+[/tab]
+[tab title="By Region"]
+
+[chart type=doughnut title="Pipeline Distribution"
+  NorthAmerica=52 EMEA=28 APAC=14 LatAm=6
+]
+
+[table cols="Region,Pipeline,Deals,WinRate"
+  NorthAmerica | $6.4M | 38 | 34%
+  EMEA         | $3.4M | 21 | 28%
+  APAC         | $1.7M | 11 | 25%
+  LatAm        | $0.8M | 6  | 19%
+]
+
+[/tab]
+[/tabs]
+
+[divider]
+
+## Product & Engineering
+
+[progress label="Q3 Roadmap Completion" value=84 color=green target="14/17 features"]
+[progress label="API Uptime SLA" value=99 color=blue target="99.9% target"]
+[progress label="P1 Bug Backlog Cleared" value=70 color=red target="12 open / target zero"]
+
+[columns]
+[col]
+[metric label="MAU" value="18400" trend=+31% color=blue]
+[/col]
+[col]
+[metric label="NPS Score" value="62" trend=+8% color=green]
+[/col]
+[col]
+[metric label="Median Latency" value="94ms" trend=-12% color=green]
+[/col]
+[/columns]
+
+[callout icon=🚀 title="Q3 Shipped" text="Advanced analytics dashboard, SSO/SAML enterprise auth, Salesforce bi-directional sync, and a new mobile SDK for iOS and Android." color=blue]
+
+[divider]
+
+## Headcount & Ops
+
+[table cols="Function,Current,Q4Plan,OpenReqs"
+  Engineering   | 28 | 34 | 6
+  Sales         | 14 | 18 | 4
+  CustomerSucc  | 9  | 12 | 3
+  Marketing     | 6  | 7  | 1
+  G&A           | 5  | 5  | 0
+  Total         | 62 | 76 | 14
+]
+
+[chart type=bar title="Headcount Growth"
+  Q1-2025=31 Q2-2025=38 Q3-2025=44 Q4-2025=51 Q1-2026=56 Q2-2026=59 Q3-2026=62
+]
+
+[divider]
+
+## Risks & Actions
+
+[section title="Key Risks" style=card]
+
+[alert type=warning text="Burn rate trending 5% above plan — CFO reviewing cost reduction scenarios for Q4."]
+[alert type=error text="GlobalBank deal at risk: legal flagged data residency clause — Board approval needed for EU DPA."]
+[alert type=info text="APAC expansion requires in-region cloud infra by Q1 2027 — architecture review Oct 18."]
+
+[list style=check]
+- Close GlobalBank with EU DPA by Oct 20 — Sarah K. + Legal
+- Hire 3 enterprise AEs before Oct 31 — People Ops
+- Launch mobile SDK GA with 5 design partners by Nov 1
+- Board approval for Series B $25M raise — targeting Dec close
+[/list]
+
+[/section]

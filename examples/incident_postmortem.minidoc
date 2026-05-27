@@ -1,0 +1,112 @@
+@doc title="Post-Mortem — Payment Service Outage 2026-09-14" theme=light
+
+# Incident Post-Mortem
+## Payment Service Outage — 2026-09-14
+
+> Severity: P0 · Duration: 2h 14m · Impact: 23% of transactions failed
+
+[columns]
+[col]
+[metric label="Duration" value="2h 14m" color=red]
+[/col]
+[col]
+[metric label="Failed Transactions" value="14820" color=red]
+[/col]
+[col]
+[metric label="Revenue Impact" value="$284K" color=red]
+[/col]
+[col]
+[metric label="Users Affected" value="9400" color=yellow]
+[/col]
+[/columns]
+
+[alert type=error text="Root cause: misconfigured connection pool limit in payment-service v3.4.1 — deployed 14:02 UTC, triggered at 14:18 under peak load. Rolled back at 15:02 UTC."]
+
+[divider]
+
+## Incident Timeline
+
+[timeline color=red]
+- 14:02 UTC: payment-service v3.4.1 deployed via automated pipeline — no issues flagged
+- 14:18 UTC: PagerDuty alert fires — payment error rate crosses 5% threshold (baseline <0.2%)
+- 14:23 UTC: On-call engineer Priya acknowledges — begins investigation in Datadog
+- 14:31 UTC: Error identified as DB connection pool exhaustion — pool limit set to 10 (was 200)
+- 14:38 UTC: Hot-fix attempted — config push fails due to validation error
+- 14:55 UTC: Decision to roll back to v3.4.0 — rollback initiated
+- 15:02 UTC: Rollback completes — error rate begins dropping
+- 15:12 UTC: Error rate returns to baseline — incident mitigated
+- 16:16 UTC: Incident closed — post-mortem scheduled
+- 16:30 UTC: Customer communications sent to enterprise tier
+[/timeline]
+
+[divider]
+
+## Impact Analysis
+
+[tabs]
+[tab title="Error Rate"]
+
+[chart type=line title="Payment Error Rate (%) During Incident"
+  T1402=0 T1415=1 T1418=5 T1423=18 T1431=23 T1438=21 T1455=19 T1502=12 T1512=1 T1520=0
+]
+
+[/tab]
+[tab title="Affected Services"]
+
+[table cols="Service,Impact,DegradationType,Recovery"
+  payment-service | Direct  | DB pool exhausted     | Rollback v3.4.0
+  checkout-api    | Cascade | Timeouts from payment | Auto-recovered
+  order-service   | Partial | 8% failed orders      | Auto-recovered
+  fraud-detection | None    | Bypassed on error     | N/A
+  notifications   | Minor   | Delayed email/SMS     | Drained by 16:00
+]
+
+[/tab]
+[tab title="Customer Impact"]
+
+[table cols="Tier,UsersAffected,FailedTxns,Contacted,SLACredit"
+  Enterprise | 1200 | 3400  | Yes 16:30   | Yes 5% MRR
+  Pro        | 3800 | 7200  | Email sent  | No
+  Starter    | 4400 | 4220  | Status page | No
+  Total      | 9400 | 14820 | —           | —
+]
+
+[/tab]
+[/tabs]
+
+[divider]
+
+## Root Cause — 5 Whys
+
+[section title="Why Chain" style=card]
+
+[timeline color=yellow]
+- Why did payments fail?: DB connection pool exhausted — service could not acquire connections under load
+- Why was the pool exhausted?: Pool limit was set to 10 in v3.4.1 config (correct value is 200)
+- Why was the wrong value committed?: Config refactor in PR-2841 introduced a new key; old key silently ignored
+- Why wasn't this caught in review?: Reviewer assumed the 200→10 change was intentional in the new namespace
+- Why wasn't it caught in staging?: Staging runs at 2% of prod — pool exhaustion only triggers above 15% concurrency
+[/timeline]
+
+[/section]
+
+[divider]
+
+## Action Items
+
+[table cols="Action,Owner,Priority,DueDate,Status"
+  Add config validation test — pool size must be >50          | Eng: Priya   | P0 | Sep 21 | In Progress
+  Load test requirement at 50% prod traffic before deploy     | DevOps       | P0 | Sep 28 | Planned
+  Lint rule: warn if connection pool < 100                    | Platform Eng | P1 | Oct 5  | Planned
+  Config change review checklist added to PR template         | Eng Lead     | P1 | Sep 24 | Done
+  Runbook updated with pool exhaustion playbook               | On-call      | P1 | Sep 21 | Done
+  SLA credit processed for Enterprise accounts                | CS: Jamie    | P0 | Sep 18 | Done
+]
+
+[section title="Preventive Measures" style=card]
+
+[callout icon=🔧 title="Immediate" text="All DB connection pool configs now validated by CI — deploy blocked if value < 50. Shadow environment test added for all config-only changes under 50% load." color=red]
+[callout icon=📊 title="Detection" text="New synthetic monitor fires within 60s of error rate crossing 1% (was 5%). P0 auto-pages 2 engineers simultaneously instead of sequential escalation." color=yellow]
+[callout icon=📋 title="Process" text="Config-only PRs now require sign-off from team lead and a platform engineer. Staging gets 20% prod traffic replay from next sprint." color=blue]
+
+[/section]
