@@ -12,7 +12,7 @@ output **MiniDoc DSL** and call the `render_minidoc` or `render_and_open` MCP to
 - One logical unit = one component
 - Data values must be numbers (no commas): `value=1840` not `value=1,840`
 - Chart data keys must be single words: `Jan=40` not `"Jan 2026"=40`
-- Close all block tags: `[/section]` `[/columns]` `[/col]` `[/list]`
+- Close all block tags: `[/section]` `[/columns]` `[/col]` `[/list]` `[/tabs]` `[/tab]` `[/timeline]`
 
 ---
 
@@ -46,6 +46,52 @@ Colors: `green` `red` `blue` `yellow` `purple` `gray`
   Globex    | Proposal    | $85k  | Bob
 ]
 ```
+### KPI (target vs actual)
+```
+[kpi label="ARR" value="$4.8M" target="$5.0M" trend=+18% color=green]
+[kpi label="CAC" value="$1,240" target="$1,100" trend=+8% color=red]
+```
+
+### Progress bar
+```
+[progress label="Q3 Revenue Goal" value=72 color=green target="$2.2M"]
+[progress label="Hiring Plan" value=45 color=blue]
+```
+`value` is 0–100 (percentage). `target` is an optional label string.
+
+### Divider
+```
+[divider]
+```
+
+### Callout
+```
+[callout icon=💡 title="Key Insight" text="APAC growing 28% QoQ." color=blue]
+[callout icon=⚠️ title="Action Required" text="Renew Acme contract by June 1." color=red]
+```
+
+### Timeline
+```
+[timeline color=blue]
+- 2026-Q1: Launched MVP — 500 users
+- 2026-Q2: Series A closed ($12M)
+- 2026-Q3: Enterprise tier launched
+[/timeline]
+```
+Item format: `- label: description` — label appears bold, description after dash.
+
+### Tabs
+```
+[tabs]
+[tab title="Overview"]
+  ... any components ...
+[/tab]
+[tab title="Details"]
+  ... any components ...
+[/tab]
+[/tabs]
+```
+Use tabs to separate dimensions: Overview / By Region / Risk / Raw Data.
 
 ### Charts
 ```
@@ -60,7 +106,12 @@ Colors: `green` `red` `blue` `yellow` `purple` `gray`
 [chart type=pie title="Traffic Sources"
   Organic=45 Paid=30 Direct=15 Referral=10
 ]
+
+[chart type=doughnut title="Budget Allocation"
+  Engineering=40 Sales=25 Marketing=20 Ops=15
+]
 ```
+Chart types: `bar` `line` `pie` `doughnut`
 
 ### Layout
 ```

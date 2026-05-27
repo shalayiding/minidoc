@@ -22,7 +22,7 @@ def parse_attrs(s: str) -> Dict[str, str]:
     return attrs
 
 
-BLOCK_TAGS = {"section", "columns", "col", "list"}
+BLOCK_TAGS = {"section", "columns", "col", "list", "tabs", "tab", "timeline"}
 
 
 def parse(text: str) -> List[Node]:

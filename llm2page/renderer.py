@@ -107,7 +107,7 @@ def _chart(n: Node) -> str:
     values = json.dumps(list(data.values()))
     colors = json.dumps(CHART_PALETTE[: len(data)])
 
-    if chart_type == "pie":
+    if chart_type in ("pie", "doughnut"):
         datasets = f'[{{data:{values},backgroundColor:{colors}}}]'
         legend = "true"
     else:
@@ -184,12 +184,154 @@ def _list(n: Node) -> str:
     return f"<{tag} {pl}>{''.join(items)}</{tag}>"
 
 
+def _progress(n: Node) -> str:
+    label = n.attrs.get("label", "")
+    value = int(float(n.attrs.get("value", "0")))
+    target = n.attrs.get("target", "")
+    color = COLOR_MAP.get(n.attrs.get("color", "blue"), n.attrs.get("color", "#3b82f6"))
+    target_html = f'<span style="font-size:0.8em;color:#6b7280;margin-left:0.5rem">/ {target}</span>' if target else ""
+    return (
+        f'<div style="margin:0.75rem 0">'
+        f'<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:0.35rem">'
+        f'<span style="font-size:0.9em">{label}</span>'
+        f'<span style="font-weight:700;color:{color}">{value}%{target_html}</span>'
+        f'</div>'
+        f'<div style="background:#e5e7eb;border-radius:999px;height:8px;overflow:hidden">'
+        f'<div style="width:{min(value,100)}%;background:{color};border-radius:999px;height:8px"></div>'
+        f'</div></div>'
+    )
+
+
+def _kpi(n: Node) -> str:
+    label = n.attrs.get("label", "")
+    value = n.attrs.get("value", "")
+    target = n.attrs.get("target", "")
+    trend = n.attrs.get("trend", "")
+    color = COLOR_MAP.get(n.attrs.get("color", "blue"), n.attrs.get("color", "#3b82f6"))
+
+    trend_html = ""
+    if trend:
+        arrow = "▲" if trend.startswith("+") else "▼"
+        tc = "#22c55e" if trend.startswith("+") else "#ef4444"
+        trend_html = f'<span style="color:{tc};font-size:0.85em;margin-left:0.5rem">{arrow} {trend}</span>'
+
+    target_html = (
+        f'<div style="font-size:0.8em;color:#6b7280;margin-top:0.25rem">'
+        f'Target: <strong>{target}</strong></div>'
+    ) if target else ""
+
+    return (
+        f'<article style="border-left:4px solid {color};padding:1rem 1.25rem;margin:0.5rem 0;border-radius:6px">'
+        f'<div style="font-size:0.8em;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em">{label}</div>'
+        f'<div style="font-size:2rem;font-weight:700;color:{color};line-height:1.2">{value}{trend_html}</div>'
+        f'{target_html}'
+        f'</article>'
+    )
+
+
+def _divider(n: Node) -> str:
+    return '<hr style="margin:1.5rem 0;opacity:0.3">'
+
+
+def _callout(n: Node) -> str:
+    icon = n.attrs.get("icon", "💡")
+    title = n.attrs.get("title", "")
+    text = n.attrs.get("text", "")
+    color = COLOR_MAP.get(n.attrs.get("color", "blue"), n.attrs.get("color", "#3b82f6"))
+    title_html = f'<div style="font-weight:600;color:{color};margin-bottom:0.2rem">{title}</div>' if title else ""
+    return (
+        f'<div style="background:{color}0d;border:1px solid {color}30;border-radius:8px;'
+        f'padding:1rem 1.25rem;margin:0.75rem 0;display:flex;gap:0.75rem;align-items:flex-start">'
+        f'<span style="font-size:1.3rem;line-height:1.4">{icon}</span>'
+        f'<div>{title_html}<div style="font-size:0.95em">{text}</div></div>'
+        f'</div>'
+    )
+
+
+def _timeline(n: Node) -> str:
+    color = COLOR_MAP.get(n.attrs.get("color", "blue"), n.attrs.get("color", "#3b82f6"))
+    items = []
+    for c in n.children:
+        if c.type == "paragraph":
+            text = re.sub(r"^[-*]\s*", "", c.content)
+            # Split "label: description" if colon present
+            if ":" in text:
+                label, _, desc = text.partition(":")
+                item_html = f'<strong style="color:{color}">{label.strip()}</strong> — {desc.strip()}'
+            else:
+                item_html = text
+            items.append(
+                f'<div style="position:relative;margin-bottom:1.25rem;padding-left:0.25rem">'
+                f'<div style="position:absolute;left:-1.4rem;top:0.35rem;width:10px;height:10px;'
+                f'background:{color};border-radius:50%;box-shadow:0 0 0 3px {color}30"></div>'
+                f'<div style="font-size:0.95em">{item_html}</div>'
+                f'</div>'
+            )
+    return (
+        f'<div style="margin:1rem 0;padding-left:1.5rem;'
+        f'border-left:2px solid {color}40">{"".join(items)}</div>'
+    )
+
+
+def _tabs(n: Node) -> str:
+    group_id = f"tabs_{uuid.uuid4().hex[:8]}"
+    buttons, panels = [], []
+    tab_nodes = [c for c in n.children if c.type == "tab"]
+
+    for idx, tab in enumerate(tab_nodes):
+        title = tab.attrs.get("title", f"Tab {idx+1}")
+        active_btn = (
+            f'background:var(--pico-primary,#6366f1);color:#fff;'
+            f'border-bottom:2px solid var(--pico-primary,#6366f1);'
+        ) if idx == 0 else "background:transparent;border-bottom:2px solid transparent;"
+        buttons.append(
+            f'<button data-group="{group_id}" onclick="llm2pageTab(\'{group_id}\',{idx})" '
+            f'style="border:none;cursor:pointer;padding:0.6rem 1.25rem;font-size:0.9em;'
+            f'font-weight:600;border-radius:6px 6px 0 0;{active_btn}">{title}</button>'
+        )
+        display = "block" if idx == 0 else "none"
+        panels.append(
+            f'<div id="{group_id}_{idx}" style="display:{display};padding:1rem 0">'
+            f'{render_nodes(tab.children)}</div>'
+        )
+
+    js = (
+        f'<script>'
+        f'function llm2pageTab(g,idx){{'
+        f'document.querySelectorAll("[data-group=\'"+g+"\']").forEach(function(b,i){{'
+        f'b.style.background=i===idx?"var(--pico-primary,#6366f1)":"transparent";'
+        f'b.style.color=i===idx?"#fff":"inherit";'
+        f'b.style.borderBottom=i===idx?"2px solid var(--pico-primary,#6366f1)":"2px solid transparent";'
+        f'}});'
+        f'var p=document.getElementById(g+"_0");'
+        f'if(p){{var par=p.parentNode;'
+        f'par.querySelectorAll("[id^=\'"+g+"_\']").forEach(function(el,i){{el.style.display=i===idx?"block":"none";}});}}'
+        f'}}'
+        f'</script>'
+    )
+
+    return (
+        f'<div style="margin:1rem 0">'
+        f'<div style="display:flex;gap:0;border-bottom:2px solid #e5e7eb;margin-bottom:0">{"".join(buttons)}</div>'
+        f'{"".join(panels)}'
+        f'</div>'
+        f'{js}'
+    )
+
+
+def _tab(n: Node) -> str:
+    # Rendered by _tabs — standalone tab nodes are no-ops
+    return render_nodes(n.children)
+
+
 _RENDERERS = {
     "doc_header": lambda n: "",
     "heading":    _heading,
     "paragraph":  _paragraph,
     "quote":      _quote,
     "metric":     _metric,
+    "kpi":        _kpi,
+    "progress":   _progress,
     "table":      _table,
     "chart":      _chart,
     "section":    _section,
@@ -198,4 +340,9 @@ _RENDERERS = {
     "badge":      _badge,
     "alert":      _alert,
     "list":       _list,
+    "divider":    _divider,
+    "callout":    _callout,
+    "timeline":   _timeline,
+    "tabs":       _tabs,
+    "tab":        _tab,
 }

@@ -1,28 +1,41 @@
+import importlib
 import os
 import tempfile
 import subprocess
 import sys
 from pathlib import Path
 from fastmcp import FastMCP
-from llm2page import compile_to_html
 
 mcp = FastMCP("llm2page")
 
-_GUIDE = (Path(__file__).parent.parent / "SYSTEM_PROMPT.md").read_text(encoding="utf-8")
+_PROMPT_FILE = Path(__file__).parent.parent / "SYSTEM_PROMPT.md"
+
+
+def _compile(dsl: str) -> str:
+    """Always use fresh llm2page code — reload on every call during development."""
+    import llm2page.parser
+    import llm2page.renderer
+    import llm2page.compiler
+    import llm2page
+    importlib.reload(llm2page.parser)
+    importlib.reload(llm2page.renderer)
+    importlib.reload(llm2page.compiler)
+    importlib.reload(llm2page)
+    return llm2page.compile_to_html(dsl)
 
 
 @mcp.prompt()
 def minidoc_guide() -> str:
     """MiniDoc DSL reference: syntax, components, and per-role templates.
     Load this prompt at the start of any session where you want to generate reports."""
-    return _GUIDE
+    return _PROMPT_FILE.read_text(encoding="utf-8")
 
 
 @mcp.tool()
 def render_minidoc(dsl: str) -> str:
     """Compile MiniDoc DSL to an HTML file. Returns the absolute path to the rendered file.
     Share this path with the user so they can open it in a browser."""
-    html = compile_to_html(dsl)
+    html = _compile(dsl)
     fd, path = tempfile.mkstemp(suffix=".html", prefix="llm2page_")
     with os.fdopen(fd, "w", encoding="utf-8") as f:
         f.write(html)
