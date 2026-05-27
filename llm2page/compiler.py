@@ -16,12 +16,19 @@ def compile_to_html(dsl: str) -> str:
     title = doc_attrs.get("title", "llm2page")
     theme = doc_attrs.get("theme", "light")
 
-    has_chart = any(n.type == "chart" for n in _flatten(nodes))
+    has_chart   = any(n.type == "chart"   for n in _flatten(nodes))
+    has_diagram = any(n.type == "diagram" for n in _flatten(nodes))
 
     body = render_nodes([n for n in nodes if n.type != "doc_header"])
 
-    pico = f'<link rel="stylesheet" href="{PICO_CDN}">'
+    pico    = f'<link rel="stylesheet" href="{PICO_CDN}">'
     chartjs = f'<script src="{CHARTJS_CDN}"></script>' if has_chart else ""
+    mermaid = (
+        '<script type="module">'
+        'import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";'
+        'mermaid.initialize({startOnLoad:true,theme:"default"});'
+        '</script>'
+    ) if has_diagram else ""
 
     return f"""<!DOCTYPE html>
 <html lang="en" data-theme="{theme}">
@@ -31,6 +38,7 @@ def compile_to_html(dsl: str) -> str:
   <title>{title}</title>
   {pico}
   {chartjs}
+  {mermaid}
   <style>
     body {{ max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem; }}
   </style>

@@ -324,6 +324,15 @@ def _tab(n: Node) -> str:
     return render_nodes(n.children)
 
 
+def _diagram(n: Node) -> str:
+    content = "\n".join(n.data_lines)
+    return (
+        f'<div class="mermaid" style="margin:1.5rem 0;text-align:center;'
+        f'background:var(--pico-card-background-color,#fafafa);'
+        f'border-radius:8px;padding:1.5rem;overflow-x:auto">\n{content}\n</div>'
+    )
+
+
 _RENDERERS = {
     "doc_header": lambda n: "",
     "heading":    _heading,
@@ -345,4 +354,5 @@ _RENDERERS = {
     "timeline":   _timeline,
     "tabs":       _tabs,
     "tab":        _tab,
+    "diagram":    _diagram,
 }
