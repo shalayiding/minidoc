@@ -7,7 +7,7 @@ from .parser import Node
 
 PICO_CDN = "https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
 CHARTJS_CDN = "https://cdn.jsdelivr.net/npm/chart.js"
-HIGHLIGHTJS_CSS = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css"
+HIGHLIGHTJS_CSS = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"
 HIGHLIGHTJS_JS  = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"
 
 COLOR_MAP = {
@@ -342,15 +342,15 @@ def _code(n: Node) -> str:
     code = _html.escape("\n".join(n.data_lines))
     lang_class = f'class="language-{lang}"' if lang else ""
     title_html = (
-        f'<div style="background:#f3f4f6;border-bottom:1px solid #e5e7eb;'
-        f'padding:0.35rem 1rem;font-size:0.8em;color:#6b7280;font-family:monospace">'
+        f'<div style="background:#161b22;border-bottom:1px solid #30363d;'
+        f'padding:0.35rem 1rem;font-size:0.8em;color:#8b949e;font-family:monospace">'
         f'{_html.escape(title)}</div>'
     ) if title else ""
     return (
-        f'<div style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;margin:1rem 0">'
+        f'<div style="border:1px solid #30363d;border-radius:8px;overflow:hidden;margin:1rem 0">'
         f'{title_html}'
-        f'<pre style="margin:0;padding:0;overflow-x:auto">'
-        f'<code {lang_class} style="border-radius:0;padding:1rem;display:block">{code}</code>'
+        f'<pre style="margin:0;padding:0;overflow-x:auto;background:#0d1117">'
+        f'<code {lang_class} style="border-radius:0;padding:1rem;display:block;background:#0d1117">{code}</code>'
         f'</pre>'
         f'</div>'
     )
