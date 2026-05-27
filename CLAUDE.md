@@ -39,3 +39,7 @@ uv run llm2page examples/q3_report.minidoc -o out.html
 ## Commit style
 
 Short imperative messages, no co-author trailer. Example: `add chart renderer` not `Add Chart.js rendering support for bar/line/pie chart types`.
+
+## MiniDoc DSL — how to generate reports
+
+@SYSTEM_PROMPT.md
