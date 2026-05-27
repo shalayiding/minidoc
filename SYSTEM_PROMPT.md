@@ -113,6 +113,22 @@ Use tabs to separate dimensions: Overview / By Region / Risk / Raw Data.
 ```
 Chart types: `bar` `line` `pie` `doughnut`
 
+### Code block
+```
+[code lang=python title="app.py"
+def handler(event):
+    return {"status": 200, "body": event["name"]}
+]
+
+[code lang=sql
+SELECT user_id, COUNT(*) AS orders
+FROM orders
+WHERE created_at > NOW() - INTERVAL 30 DAY
+GROUP BY user_id
+]
+```
+`lang` controls syntax highlighting — any highlight.js language name: `python` `javascript` `typescript` `sql` `bash` `json` `yaml` `go` `rust` `java` `html` `css`. `title` is optional.
+
 ### Layout
 ```
 [columns]
