@@ -31,6 +31,11 @@ output **MiniDoc DSL** and call the `render_minidoc` or `render_and_open` MCP to
 > Blockquote or subtitle line
 Plain paragraph text goes here directly.
 ```
+Inline markdown works inside paragraphs, callout `text=`, alert `text=`, table cells, list items, and timeline items:
+- `**bold**` → bold
+- `*italic*` → italic
+- `` `code` `` → inline code span
+- `[label](url)` → hyperlink
 
 ### Metric card
 ```

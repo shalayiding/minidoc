@@ -29,6 +29,21 @@ ALERT_STYLES = {
 }
 
 
+def inline_md(text: str) -> str:
+    """Inline markdown: `code`, **bold**, *italic*, [link](url)."""
+    # code spans first — content inside is treated as literal
+    text = re.sub(
+        r'`([^`]+)`',
+        r'<code style="background:#f3f4f6;padding:0.15em 0.4em;'
+        r'border-radius:3px;font-size:0.88em;color:#e83e8c">\1</code>',
+        text,
+    )
+    text = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', text)
+    text = re.sub(r'(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)', r'<em>\1</em>', text)
+    text = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'<a href="\2">\1</a>', text)
+    return text
+
+
 def render_nodes(nodes: List[Node]) -> str:
     return "\n".join(render_node(n) for n in nodes)
 
@@ -42,15 +57,15 @@ def render_node(node: Node) -> str:
 
 def _heading(n: Node) -> str:
     lvl = n.attrs.get("level", "2")
-    return f"<h{lvl}>{n.content}</h{lvl}>"
+    return f"<h{lvl}>{inline_md(n.content)}</h{lvl}>"
 
 
 def _paragraph(n: Node) -> str:
-    return f"<p>{n.content}</p>"
+    return f"<p>{inline_md(n.content)}</p>"
 
 
 def _quote(n: Node) -> str:
-    return f"<blockquote><p>{n.content}</p></blockquote>"
+    return f"<blockquote><p>{inline_md(n.content)}</p></blockquote>"
 
 
 def _metric(n: Node) -> str:
@@ -82,7 +97,7 @@ def _table(n: Node) -> str:
         line = line.strip()
         if not line:
             continue
-        cells = "".join(f"<td>{c.strip()}</td>" for c in line.split("|"))
+        cells = "".join(f"<td>{inline_md(c.strip())}</td>" for c in line.split("|"))
         rows += f"<tr>{cells}</tr>"
     return f"<figure><table><thead><tr>{header}</tr></thead><tbody>{rows}</tbody></table></figure>"
 
@@ -166,7 +181,7 @@ def _badge(n: Node) -> str:
 
 def _alert(n: Node) -> str:
     color, bg, icon = ALERT_STYLES.get(n.attrs.get("type", "info"), ALERT_STYLES["info"])
-    text = n.attrs.get("text", "")
+    text = inline_md(n.attrs.get("text", ""))
     return (
         f'<div style="background:{bg};border-left:4px solid {color};'
         f'padding:0.75rem 1rem;border-radius:4px;margin:0.75rem 0">{icon} {text}</div>'
@@ -183,7 +198,7 @@ def _list(n: Node) -> str:
             text = re.sub(r"^[-*]\s*", "", c.content)
             prefix = "✅ " if style == "check" else ""
             li_style = 'style="list-style:none;margin:0.3rem 0"' if style == "check" else ""
-            items.append(f"<li {li_style}>{prefix}{text}</li>")
+            items.append(f"<li {li_style}>{prefix}{inline_md(text)}</li>")
     return f"<{tag} {pl}>{''.join(items)}</{tag}>"
 
 
@@ -246,7 +261,7 @@ def _callout(n: Node) -> str:
         f'<div style="background:{color}0d;border:1px solid {color}30;border-radius:8px;'
         f'padding:1rem 1.25rem;margin:0.75rem 0;display:flex;gap:0.75rem;align-items:flex-start">'
         f'<span style="font-size:1.3rem;line-height:1.4">{icon}</span>'
-        f'<div>{title_html}<div style="font-size:0.95em">{text}</div></div>'
+        f'<div>{title_html}<div style="font-size:0.95em">{inline_md(text)}</div></div>'
         f'</div>'
     )
 
@@ -260,9 +275,9 @@ def _timeline(n: Node) -> str:
             # Split "label: description" if colon present
             if ":" in text:
                 label, _, desc = text.partition(":")
-                item_html = f'<strong style="color:{color}">{label.strip()}</strong> — {desc.strip()}'
+                item_html = f'<strong style="color:{color}">{inline_md(label.strip())}</strong> — {inline_md(desc.strip())}'
             else:
-                item_html = text
+                item_html = inline_md(text)
             items.append(
                 f'<div style="position:relative;margin-bottom:1.25rem;padding-left:0.25rem">'
                 f'<div style="position:absolute;left:-1.4rem;top:0.35rem;width:10px;height:10px;'
