@@ -1,6 +1,5 @@
 import importlib
 import os
-import tempfile
 import subprocess
 import sys
 from pathlib import Path
@@ -8,7 +7,9 @@ from fastmcp import FastMCP
 
 mcp = FastMCP("llm2page")
 
-_PROMPT_FILE = Path(__file__).parent.parent / "SYSTEM_PROMPT.md"
+_REPO_ROOT = Path(__file__).parent.parent
+_PROMPT_FILE = _REPO_ROOT / "SYSTEM_PROMPT.md"
+_RESULT_DIR = _REPO_ROOT / "result"
 
 
 def _compile(dsl: str) -> str:
@@ -24,6 +25,14 @@ def _compile(dsl: str) -> str:
     return llm2page.compile_to_html(dsl)
 
 
+def _write_result(html: str, name: str = "") -> str:
+    _RESULT_DIR.mkdir(exist_ok=True)
+    stem = name.removesuffix(".minidoc").removesuffix(".html") if name else "output"
+    path = _RESULT_DIR / f"{stem}.html"
+    path.write_text(html, encoding="utf-8")
+    return str(path)
+
+
 @mcp.prompt()
 def minidoc_guide() -> str:
     """MiniDoc DSL reference: syntax, components, and per-role templates.
@@ -32,20 +41,19 @@ def minidoc_guide() -> str:
 
 
 @mcp.tool()
-def render_minidoc(dsl: str) -> str:
-    """Compile MiniDoc DSL to an HTML file. Returns the absolute path to the rendered file.
-    Share this path with the user so they can open it in a browser."""
-    html = _compile(dsl)
-    fd, path = tempfile.mkstemp(suffix=".html", prefix="llm2page_")
-    with os.fdopen(fd, "w", encoding="utf-8") as f:
-        f.write(html)
-    return path
+def render_minidoc(dsl: str, name: str = "") -> str:
+    """Compile MiniDoc DSL to an HTML file saved in result/.
+    Pass name (e.g. 'netflix_architecture') to set the output filename.
+    Returns the absolute path to the rendered file."""
+    return _write_result(_compile(dsl), name)
 
 
 @mcp.tool()
-def render_and_open(dsl: str) -> str:
-    """Compile MiniDoc DSL to HTML and open it in the default browser. Returns the file path."""
-    path = render_minidoc(dsl)
+def render_and_open(dsl: str, name: str = "") -> str:
+    """Compile MiniDoc DSL to HTML, save in result/, and open in the default browser.
+    Pass name (e.g. 'netflix_architecture') to set the output filename.
+    Returns the file path."""
+    path = render_minidoc(dsl, name)
     if sys.platform == "darwin":
         subprocess.Popen(["open", path])
     elif sys.platform.startswith("linux"):
