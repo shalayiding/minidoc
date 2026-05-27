@@ -371,6 +371,45 @@ def _code(n: Node) -> str:
     )
 
 
+def _image(n: Node) -> str:
+    src = n.attrs.get("src", "")
+    alt = _html.escape(n.attrs.get("alt", ""))
+    caption = n.attrs.get("caption", "")
+    width = n.attrs.get("width", "100%")
+    align = n.attrs.get("align", "center")
+    if width.isdigit():
+        width = f"{width}px"
+    margin = "margin:0 auto" if align == "center" else f"margin-{'right' if align == 'left' else 'left'}:auto"
+    caption_html = (
+        f'<figcaption style="text-align:center;font-size:0.85em;color:#6b7280;margin-top:0.4rem">'
+        f'{inline_md(caption)}</figcaption>'
+    ) if caption else ""
+    return (
+        f'<figure style="margin:1rem 0;text-align:{align}">'
+        f'<img src="{src}" alt="{alt}" style="max-width:{width};height:auto;border-radius:6px;display:block;{margin}">'
+        f'{caption_html}'
+        f'</figure>'
+    )
+
+
+def _accordion(n: Node) -> str:
+    title = n.attrs.get("title", "")
+    open_attr = " open" if n.attrs.get("open", "").lower() in ("true", "1", "yes") else ""
+    inner = render_nodes(n.children)
+    return (
+        f'<details{open_attr} style="border:1px solid #e5e7eb;border-radius:8px;'
+        f'margin:0.5rem 0;overflow:hidden">'
+        f'<summary style="padding:0.85rem 1.25rem;cursor:pointer;font-weight:600;'
+        f'background:var(--pico-card-background-color,#fff);user-select:none;'
+        f'display:flex;justify-content:space-between;align-items:center;list-style:none">'
+        f'{inline_md(title)}'
+        f'<span style="font-size:0.75em;color:#6b7280;transition:transform 0.2s">▼</span>'
+        f'</summary>'
+        f'<div style="padding:1rem 1.25rem;border-top:1px solid #e5e7eb">{inner}</div>'
+        f'</details>'
+    )
+
+
 _RENDERERS = {
     "doc_header": lambda n: "",
     "heading":    _heading,
@@ -394,4 +433,6 @@ _RENDERERS = {
     "tab":        _tab,
     "diagram":    _diagram,
     "code":       _code,
+    "image":      _image,
+    "accordion":  _accordion,
 }

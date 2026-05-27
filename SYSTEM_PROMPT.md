@@ -72,6 +72,18 @@ def hello():
 [/tab]
 [/tabs]
 
+[image src="https://example.com/photo.png" alt="Description" caption="Figure 1" width=800 align=center]
+
+[accordion title="Why this approach?"]
+Explanation here — any components work inside.
+[/accordion]
+
+[accordion title="Show details" open=true]
+[table cols="Key,Value"
+  Uptime | 99.99%
+]
+[/accordion]
+
 [diagram
 flowchart TD
     A[Client] --> B[API]
