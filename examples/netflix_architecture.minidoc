@@ -1,0 +1,273 @@
+@doc title="Netflix System Architecture — Design Report" theme=light
+
+# Netflix System Architecture
+
+> Source: Netflix Engineering · Diagram analysis by llm2page
+
+## System at a Glance
+
+[columns]
+[col]
+[metric label="Architecture Style" value="Microservices" color=blue]
+[/col]
+[col]
+[metric label="Avg Daily Streams" value="200M+" color=green]
+[/col]
+[col]
+[metric label="Availability Target" value="99.99%" color=purple]
+[/col]
+[col]
+[metric label="Engineers" value="2,000+" color=gray]
+[/col]
+[/columns]
+
+[callout icon=🎯 title="Core Design Philosophy" text="Decouple every concern — client delivery, API gateway, business logic, data, and events all live in separate, independently scalable layers." color=blue]
+
+[divider]
+
+## Architecture Diagram
+
+[diagram
+flowchart TD
+    subgraph Clients["🖥 Client Devices"]
+        Mobile["📱 Mobile"]
+        TV["📺 Smart TV"]
+        Laptop["💻 Laptop"]
+        Xbox["🎮 Xbox"]
+    end
+
+    subgraph CDN["Content Delivery"]
+        OC["☁️ OpenConnect CDN"]
+    end
+
+    subgraph Gateway["ZUUL — API Gateway"]
+        ELB["⚖️ ELB"]
+        Netty["Netty Server"]
+        OBF["Outbound Filter"]
+        EPF["Endpoint Filter"]
+        IBF["Inbound Filter"]
+    end
+
+    subgraph MS["Microservices Layer"]
+        Hystrix["⚡ Hystrix\nCircuit Breaker"]
+        SC["Service Client"]
+        MicroS["Micro Services"]
+        CritMS["Critical\nMicro Services"]
+        EVCache["EV Cache"]
+        Cassandra[("Cassandra")]
+        MySQL[("MySQL\nBilling")]
+    end
+
+    subgraph VideoPipeline["Video Processing Pipeline"]
+        Transcoder["Transcoder\nasync workers"]
+        Queue[("Queue")]
+        VideoVal["New Video\nValidation & Transcoding"]
+        S3Video[("S3")]
+    end
+
+    subgraph Events["Event Processing / AGG / Monitor"]
+        Chukwa["Chukwa"]
+        S3["S3"]
+        EMR["EMR\nHadoop"]
+        Kafka1["Kafka"]
+        Samza["Apache Samza\nMessage Router"]
+        Kafka2["Kafka\nEvents"]
+        ES["Elasticsearch"]
+        Spark["Spark"]
+    end
+
+    subgraph Chaos["Chaos Engineering"]
+        ChaosMonkey["🐒 Chaos Monkey"]
+        Titus["TITUS\nContainers"]
+    end
+
+    Clients <--> ELB
+    ELB <--> OC
+    ELB --> Netty
+    Netty --> OBF
+    OBF --> EPF
+    EPF --> IBF
+    IBF --> Netty
+    EPF --> Hystrix
+    Hystrix --> SC
+    SC --> MicroS
+    SC --> CritMS
+    CritMS --> EVCache
+    MySQL --> Cassandra
+    CritMS <--> Cassandra
+
+    EPF --> Chukwa
+    Chukwa --> S3
+    S3 --> EMR
+    EPF --> Kafka1
+    Kafka1 --> Samza
+    Samza --> Kafka2
+    Kafka2 --> ES
+    Kafka2 --> Spark
+
+    VideoVal --> Queue
+    Queue --> Transcoder
+    Transcoder --> S3Video
+
+    ChaosMonkey -.->|injects failures| MS
+    Titus -.->|manages| MS
+
+    style Gateway fill:#e0f2fe,stroke:#0284c7
+    style MS fill:#f0fdf4,stroke:#16a34a
+    style Events fill:#fef3c7,stroke:#d97706
+    style Chaos fill:#fce7f3,stroke:#db2777
+    style CDN fill:#ede9fe,stroke:#7c3aed
+]
+
+[divider]
+
+## Layer-by-Layer Breakdown
+
+[tabs]
+[tab title="Client & CDN"]
+
+### Client Devices
+Netflix supports every major device category through a unified ELB entry point.
+
+[table cols="Device Type,Examples,Protocol"
+  Mobile       | iOS / Android          | HTTPS / HLS
+  Smart TV     | Samsung / LG / Roku    | HTTPS / DASH
+  Web Browser  | Chrome / Safari        | HTTPS / MSE
+  Game Console | Xbox / PlayStation     | HTTPS / HLS
+]
+
+### OpenConnect CDN
+[callout icon=☁️ title="OpenConnect" text="Netflix's proprietary CDN. Video bytes are served directly from ISP-embedded appliances — not the origin servers. This offloads ~95% of traffic before it hits the API gateway." color=purple]
+
+[progress label="Traffic served by OpenConnect" value=95 color=purple]
+[progress label="Traffic hitting origin (API)" value=5 color=gray]
+
+[/tab]
+[tab title="API Gateway (ZUUL)"]
+
+### ZUUL Gateway Components
+
+[table cols="Component,Role,Key Capability"
+  ELB               | Entry point load balancer      | Health checks, SSL termination
+  Netty Server      | Non-blocking I/O server        | High concurrency, async I/O
+  Inbound Filter    | Pre-routing request processing | Auth, rate limiting, logging
+  Endpoint Filter   | Business logic routing         | Request routing to microservices
+  Outbound Filter   | Post-routing response handling | Response transformation, compression
+]
+
+[callout icon=🔀 title="Request Flow" text="REQUEST: Client → ELB → Netty → Inbound Filter → Endpoint Filter → Microservices. RESPONSE: Microservices → Endpoint Filter → Outbound Filter → Netty → Client." color=blue]
+
+[/tab]
+[tab title="Microservices"]
+
+### Resilience Patterns
+
+[table cols="Component,Pattern,Purpose"
+  Hystrix        | Circuit Breaker     | Stops cascade failures — fallback when service is down
+  Service Client | Client-side LB      | Smart routing to healthy microservice instances
+  EV Cache       | Distributed Cache   | Memcached-based, reduces DB load significantly
+  Cassandra      | Wide-column DB      | User data, viewing history, profiles
+  MySQL          | Relational DB       | Billing and payment data
+]
+
+[callout icon=⚡ title="Hystrix Circuit Breaker" text="If a downstream microservice fails repeatedly, Hystrix opens the circuit and returns a fallback. This prevents one slow service from cascading into a full outage." color=red]
+
+[progress label="Hystrix fault tolerance coverage" value=100 color=green]
+[progress label="Target microservice availability" value=99 color=blue]
+
+[/tab]
+[tab title="Event Processing"]
+
+### Event Pipeline
+
+[timeline color=yellow]
+- Endpoint Filter: Emits events for every API call
+- Chukwa: Collects and aggregates logs from all services
+- S3: Raw event storage — durable, cheap, scalable
+- EMR / Hadoop: Batch analytics on raw event data
+- Kafka: Real-time event stream ingestion
+- Apache Samza: Stream processing and message routing
+- Elasticsearch: Search and real-time log querying
+- Spark: Machine learning and large-scale data processing
+[/timeline]
+
+[chart type=doughnut title="Event Pipeline Use Cases"
+  Analytics=35 Monitoring=25 ML=20 Search=15 Alerting=5
+]
+
+[/tab]
+[tab title="Video Pipeline"]
+
+### Content Ingestion
+
+[table cols="Stage,Component,Detail"
+  1. Ingest    | New Video Upload    | Studio delivers raw master files
+  2. Validate  | Validation Service  | Quality check, metadata extraction
+  3. Transcode | Transcoder Workers  | Encodes 1200+ versions per title
+  4. Queue     | Queue               | Manages async worker job dispatch
+  5. Store     | Amazon S3           | Stores all encoded versions
+  6. Serve     | OpenConnect CDN     | Distributed to ISP edge nodes
+]
+
+[callout icon=🎬 title="Encoding Scale" text="Every Netflix title is encoded into 1,200+ variants — different resolutions (240p to 4K), bitrates, audio tracks, and subtitle formats. Handled by thousands of concurrent async Transcoder workers." color=blue]
+
+[/tab]
+[tab title="Chaos Engineering"]
+
+### Resilience Testing
+
+[table cols="Tool,Purpose,How It Works"
+  Chaos Monkey  | Service failure injection | Randomly terminates production instances
+  TITUS         | Container management      | Schedules and isolates service containers
+]
+
+[callout icon=🐒 title="Chaos Monkey" text="Chaos Monkey randomly kills production services during business hours. If your system can't survive a random kill, it can't survive a real failure. Netflix runs this in prod — daily." color=red]
+
+[alert type=info text="Chaos Monkey is part of the Simian Army — a suite of chaos tools that also includes Latency Monkey, Conformity Monkey, and Janitor Monkey."]
+
+[/tab]
+[/tabs]
+
+[divider]
+
+## Key Design Decisions
+
+[columns]
+[col]
+[kpi label="Microservices" value="500+" target="Independent deploys" color=blue]
+[/col]
+[col]
+[kpi label="Uptime SLA" value="99.99%" target="<1h downtime/year" color=green]
+[/col]
+[col]
+[kpi label="CDN Offload" value="95%" target="Origin traffic reduction" color=purple]
+[/col]
+[/columns]
+
+[section title="Architectural Trade-offs" style=card]
+
+[callout icon=✅ title="What This Architecture Gets Right" text="Full decoupling between content delivery (CDN), API routing (ZUUL), business logic (microservices), and analytics (event pipeline). Each layer scales independently and fails independently." color=green]
+
+[callout icon=⚠️ title="Complexity Cost" text="500+ microservices means distributed tracing, service discovery, and network overhead become critical engineering challenges. Hystrix, EV Cache, and Cassandra add significant operational burden." color=yellow]
+
+[callout icon=🔑 title="The Key Insight" text="Netflix solved the CAP theorem tradeoff by accepting eventual consistency for non-critical data (viewing history, recommendations) while enforcing strong consistency only for billing (MySQL)." color=blue]
+
+[/section]
+
+[divider]
+
+## Technology Stack Summary
+
+[table cols="Layer,Technology,Why"
+  Load Balancing    | AWS ELB           | Managed, integrates with AWS ecosystem
+  API Gateway       | ZUUL + Netty      | Non-blocking I/O handles millions of concurrent connections
+  Circuit Breaker   | Hystrix           | Prevents cascade failures in microservice mesh
+  Primary DB        | Cassandra         | Linear scalability, multi-region replication
+  Billing DB        | MySQL             | ACID compliance for financial transactions
+  Cache             | EVCache           | Memcached-based, reduces Cassandra load by ~90%
+  Stream Processing | Kafka + Samza     | Real-time event processing at millions of events/sec
+  Batch Processing  | S3 + EMR + Spark  | Nightly ML model retraining, analytics
+  Search / Logs     | Elasticsearch     | Sub-second log search across all services
+  CDN               | OpenConnect       | Proprietary ISP-embedded appliances
+  Chaos             | Chaos Monkey      | Proactive resilience validation in production
+]
