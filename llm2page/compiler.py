@@ -50,6 +50,8 @@ def compile_to_html(dsl: str) -> str:
     body {{ max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem; }}
     details > summary {{ list-style: none; }}
     details > summary::-webkit-details-marker {{ display: none; }}
+    details > summary::after {{ display: none; }}
+    details > summary::marker {{ display: none; }}
   </style>
 </head>
 <body>
