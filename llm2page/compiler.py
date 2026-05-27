@@ -9,7 +9,7 @@ def _flatten(nodes: List[Node]):
         yield from _flatten(n.children)
 
 
-def compile_to_html(dsl: str, offline: bool = False) -> str:
+def compile_to_html(dsl: str) -> str:
     nodes = parse(dsl)
 
     doc_attrs = next((n.attrs for n in nodes if n.type == "doc_header"), {})
