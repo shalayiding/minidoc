@@ -283,7 +283,7 @@ def _tabs(n: Node) -> str:
         active_btn = (
             f'background:var(--pico-primary,#6366f1);color:#fff;'
             f'border-bottom:2px solid var(--pico-primary,#6366f1);'
-        ) if idx == 0 else "background:transparent;border-bottom:2px solid transparent;"
+        ) if idx == 0 else "background:transparent;color:#374151;border-bottom:2px solid transparent;"
         buttons.append(
             f'<button data-group="{group_id}" onclick="llm2pageTab(\'{group_id}\',{idx})" '
             f'style="border:none;cursor:pointer;padding:0.6rem 1.25rem;font-size:0.9em;'
@@ -300,7 +300,7 @@ def _tabs(n: Node) -> str:
         f'function llm2pageTab(g,idx){{'
         f'document.querySelectorAll("[data-group=\'"+g+"\']").forEach(function(b,i){{'
         f'b.style.background=i===idx?"var(--pico-primary,#6366f1)":"transparent";'
-        f'b.style.color=i===idx?"#fff":"inherit";'
+        f'b.style.color=i===idx?"#fff":"#374151";'
         f'b.style.borderBottom=i===idx?"2px solid var(--pico-primary,#6366f1)":"2px solid transparent";'
         f'}});'
         f'var p=document.getElementById(g+"_0");'
