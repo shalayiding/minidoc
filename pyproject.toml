@@ -1,0 +1,18 @@
+[project]
+name = "llm2page"
+version = "0.1.0"
+description = "Compile MiniDoc DSL to beautiful HTML pages"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+llm2page = "llm2page.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
+]

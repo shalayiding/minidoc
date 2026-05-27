@@ -1,0 +1,201 @@
+import re
+import json
+import uuid
+from typing import List
+from .parser import Node
+
+PICO_CDN = "https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+CHARTJS_CDN = "https://cdn.jsdelivr.net/npm/chart.js"
+
+COLOR_MAP = {
+    "green":  "#22c55e",
+    "red":    "#ef4444",
+    "yellow": "#f59e0b",
+    "blue":   "#3b82f6",
+    "purple": "#8b5cf6",
+    "gray":   "#6b7280",
+}
+
+CHART_PALETTE = ["#6366f1", "#22c55e", "#f59e0b", "#ef4444", "#3b82f6", "#8b5cf6", "#ec4899"]
+
+ALERT_STYLES = {
+    "warning": ("#f59e0b", "#fffbeb", "⚠️"),
+    "info":    ("#3b82f6", "#eff6ff", "ℹ️"),
+    "error":   ("#ef4444", "#fef2f2", "❌"),
+    "success": ("#22c55e", "#f0fdf4", "✅"),
+}
+
+
+def render_nodes(nodes: List[Node]) -> str:
+    return "\n".join(render_node(n) for n in nodes)
+
+
+def render_node(node: Node) -> str:
+    fn = _RENDERERS.get(node.type)
+    if fn:
+        return fn(node)
+    return f"<!-- unknown: {node.type} -->"
+
+
+def _heading(n: Node) -> str:
+    lvl = n.attrs.get("level", "2")
+    return f"<h{lvl}>{n.content}</h{lvl}>"
+
+
+def _paragraph(n: Node) -> str:
+    return f"<p>{n.content}</p>"
+
+
+def _quote(n: Node) -> str:
+    return f"<blockquote><p>{n.content}</p></blockquote>"
+
+
+def _metric(n: Node) -> str:
+    label = n.attrs.get("label", "")
+    value = n.attrs.get("value", "")
+    trend = n.attrs.get("trend", "")
+    color = COLOR_MAP.get(n.attrs.get("color", "blue"), n.attrs.get("color", "#3b82f6"))
+
+    trend_html = ""
+    if trend:
+        arrow = "▲" if trend.startswith("+") else "▼"
+        tc = "#22c55e" if trend.startswith("+") else "#ef4444"
+        trend_html = f'<div style="color:{tc};font-size:0.8em;margin-top:0.2rem">{arrow} {trend}</div>'
+
+    return (
+        f'<article style="border-left:4px solid {color};padding:1rem 1.25rem;margin:0.5rem 0;border-radius:6px">'
+        f'<div style="font-size:0.8em;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em">{label}</div>'
+        f'<div style="font-size:2rem;font-weight:700;color:{color};line-height:1.2">{value}</div>'
+        f'{trend_html}'
+        f'</article>'
+    )
+
+
+def _table(n: Node) -> str:
+    cols = [c.strip() for c in n.attrs.get("cols", "").split(",")]
+    header = "".join(f"<th>{c}</th>" for c in cols)
+    rows = ""
+    for line in n.data_lines:
+        line = line.strip()
+        if not line:
+            continue
+        cells = "".join(f"<td>{c.strip()}</td>" for c in line.split("|"))
+        rows += f"<tr>{cells}</tr>"
+    return f"<figure><table><thead><tr>{header}</tr></thead><tbody>{rows}</tbody></table></figure>"
+
+
+def _chart(n: Node) -> str:
+    chart_id = f"chart_{uuid.uuid4().hex[:8]}"
+    chart_type = n.attrs.get("type", "bar")
+    title = n.attrs.get("title", "")
+
+    data: dict = {}
+    # Data from attrs (inline single-line form)
+    for k, v in n.attrs.items():
+        if k in ("type", "title"):
+            continue
+        try:
+            data[k] = float(v)
+        except ValueError:
+            pass
+    # Data from multi-line form
+    for line in n.data_lines:
+        for m in re.finditer(r"(\w+)=([0-9.]+)", line):
+            data[m.group(1)] = float(m.group(2))
+
+    labels = json.dumps(list(data.keys()))
+    values = json.dumps(list(data.values()))
+    colors = json.dumps(CHART_PALETTE[: len(data)])
+
+    if chart_type == "pie":
+        datasets = f'[{{data:{values},backgroundColor:{colors}}}]'
+        legend = "true"
+    else:
+        c = CHART_PALETTE[0]
+        datasets = (
+            f'[{{label:{json.dumps(title)},data:{values},'
+            f'backgroundColor:"{c}",borderColor:"{c}",tension:0.4}}]'
+        )
+        legend = "false"
+
+    return (
+        f'<div style="max-width:600px;margin:1.5rem auto">'
+        f'<canvas id="{chart_id}"></canvas>'
+        f'<script>new Chart(document.getElementById({json.dumps(chart_id)}),{{'
+        f'type:{json.dumps(chart_type)},'
+        f'data:{{labels:{labels},datasets:{datasets}}},'
+        f'options:{{responsive:true,plugins:{{legend:{{display:{legend}}},'
+        f'title:{{display:true,text:{json.dumps(title)}}}}}}}}})'
+        f'</script></div>'
+    )
+
+
+def _section(n: Node) -> str:
+    title = n.attrs.get("title", "")
+    card = n.attrs.get("style", "") == "card"
+    shadow = "box-shadow:0 1px 6px rgba(0,0,0,0.08);" if card else ""
+    title_html = f"<h3>{title}</h3>" if title else ""
+    inner = render_nodes(n.children)
+    return (
+        f'<section style="background:var(--pico-card-background-color,#fff);'
+        f'border-radius:8px;padding:1.5rem;margin:1rem 0;{shadow}">'
+        f"{title_html}{inner}</section>"
+    )
+
+
+def _columns(n: Node) -> str:
+    inner = render_nodes(n.children)
+    return f'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem">{inner}</div>'
+
+
+def _col(n: Node) -> str:
+    return f"<div>{render_nodes(n.children)}</div>"
+
+
+def _badge(n: Node) -> str:
+    text = n.attrs.get("text", "")
+    color = COLOR_MAP.get(n.attrs.get("color", "blue"), n.attrs.get("color", "#3b82f6"))
+    return (
+        f'<span style="background:{color}1a;color:{color};border:1px solid {color}40;'
+        f'border-radius:999px;padding:0.2em 0.75em;font-size:0.82em;font-weight:600">{text}</span>'
+    )
+
+
+def _alert(n: Node) -> str:
+    color, bg, icon = ALERT_STYLES.get(n.attrs.get("type", "info"), ALERT_STYLES["info"])
+    text = n.attrs.get("text", "")
+    return (
+        f'<div style="background:{bg};border-left:4px solid {color};'
+        f'padding:0.75rem 1rem;border-radius:4px;margin:0.75rem 0">{icon} {text}</div>'
+    )
+
+
+def _list(n: Node) -> str:
+    style = n.attrs.get("style", "bullet")
+    tag = "ol" if style == "numbered" else "ul"
+    pl = 'style="padding-left:0"' if style == "check" else ""
+    items = []
+    for c in n.children:
+        if c.type == "paragraph":
+            text = re.sub(r"^[-*]\s*", "", c.content)
+            prefix = "✅ " if style == "check" else ""
+            li_style = 'style="list-style:none;margin:0.3rem 0"' if style == "check" else ""
+            items.append(f"<li {li_style}>{prefix}{text}</li>")
+    return f"<{tag} {pl}>{''.join(items)}</{tag}>"
+
+
+_RENDERERS = {
+    "doc_header": lambda n: "",
+    "heading":    _heading,
+    "paragraph":  _paragraph,
+    "quote":      _quote,
+    "metric":     _metric,
+    "table":      _table,
+    "chart":      _chart,
+    "section":    _section,
+    "columns":    _columns,
+    "col":        _col,
+    "badge":      _badge,
+    "alert":      _alert,
+    "list":       _list,
+}

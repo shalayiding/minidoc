@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(uv *)",
+      "Bash(git *)",
+      "Bash(python3 *)",
+      "Bash(find *)",
+      "Bash(grep *)"
+    ]
+  },
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "REPO=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0; git -C \"$REPO\" add -u 2>/dev/null; git -C \"$REPO\" diff --cached --quiet 2>/dev/null || git -C \"$REPO\" commit -m \"$(git -C \"$REPO\" diff --cached --name-only | head -5 | xargs -I{} basename {} | tr '\\n' ' ' | sed 's/ $//')\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}
