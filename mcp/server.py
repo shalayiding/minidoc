@@ -2,10 +2,20 @@ import os
 import tempfile
 import subprocess
 import sys
+from pathlib import Path
 from fastmcp import FastMCP
 from llm2page import compile_to_html
 
 mcp = FastMCP("llm2page")
+
+_GUIDE = (Path(__file__).parent.parent / "SYSTEM_PROMPT.md").read_text(encoding="utf-8")
+
+
+@mcp.prompt()
+def minidoc_guide() -> str:
+    """MiniDoc DSL reference: syntax, components, and per-role templates.
+    Load this prompt at the start of any session where you want to generate reports."""
+    return _GUIDE
 
 
 @mcp.tool()
