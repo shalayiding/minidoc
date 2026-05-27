@@ -1,0 +1,56 @@
+@doc title="Sales Pipeline — Week 21" theme=light
+
+# Sales Pipeline Report
+
+> Week of 2026-05-26 · Data synced from Salesforce
+
+## Pipeline Health
+
+[columns]
+[col]
+[metric label="Total Pipeline" value="$1.82M" trend=+9% color=blue]
+[/col]
+[col]
+[metric label="Coverage Ratio" value="3.6x" trend=+0.4x color=green]
+[/col]
+[col]
+[metric label="Avg Deal Size" value="$38k" trend=-4% color=yellow]
+[/col]
+[col]
+[metric label="Win Rate" value="24%" trend=+3% color=green]
+[/col]
+[/columns]
+
+## Deals by Stage
+
+[chart type=bar title="Pipeline Value by Stage ($k)"
+  Prospecting=210 Discovery=380 Proposal=490 Negotiation=520 ClosedWon=220
+]
+
+## Active Deals
+
+[table cols="Account,Stage,Value,Owner,Close Date"
+  Acme Corp       | Negotiation  | $120k | Alice | 2026-05-30
+  Globex Inc      | Proposal     | $85k  | Bob   | 2026-06-15
+  Initech         | Discovery    | $50k  | Carol | 2026-06-30
+  Umbrella Co     | Proposal     | $200k | Alice | 2026-06-10
+  Cyberdyne       | Negotiation  | $95k  | Bob   | 2026-05-31
+]
+
+[section title="Risk & Actions" style=card]
+
+[badge text="At Risk" color=red]
+[badge text="Needs Review" color=yellow]
+[badge text="On Track" color=green]
+
+[alert type=warning text="Cyberdyne close date is Friday — legal review not started."]
+[alert type=error text="3 deals have had no activity in 14+ days."]
+[alert type=info text="Umbrella Co: champion confirmed, waiting on procurement."]
+
+[list style=check]
+- Schedule Cyberdyne legal call by Wednesday
+- Re-engage stale deals with personalized outreach
+- Update Globex proposal with new pricing tier
+[/list]
+
+[/section]

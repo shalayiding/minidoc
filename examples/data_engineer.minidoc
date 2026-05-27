@@ -1,0 +1,56 @@
+@doc title="Data Pipeline Health — 2026-05-26" theme=light
+
+# Data Pipeline Health
+
+> Daily snapshot · 08:00 UTC · Airflow DAG run #4821
+
+## Job Status Overview
+
+[columns]
+[col]
+[metric label="DAGs Run" value="142" trend=+0% color=blue]
+[/col]
+[col]
+[metric label="Success Rate" value="97.2%" trend=+0.8% color=green]
+[/col]
+[col]
+[metric label="Avg Runtime" value="4m 32s" trend=+18s color=yellow]
+[/col]
+[col]
+[metric label="SLA Breaches" value="3" trend=+2 color=red]
+[/col]
+[/columns]
+
+## Runtime Trend (minutes)
+
+[chart type=line title="Avg DAG Runtime — Last 7 Days"
+  Mon=3.8 Tue=4.1 Wed=3.9 Thu=4.2 Fri=5.1 Sat=4.4 Sun=4.5
+]
+
+## Failed / Late Jobs
+
+[table cols="DAG,Status,Duration,Last Success,Owner"
+  etl_orders_daily    | Failed  | —      | 2026-05-25 | data-eng
+  ml_feature_store    | Late    | 18m    | 2026-05-26 | ml-team
+  crm_sync_hourly     | Failed  | —      | 2026-05-24 | integrations
+]
+
+## Data Quality
+
+[chart type=bar title="Rows Processed by Source (millions)"
+  Postgres=12.4 Snowflake=8.1 S3=22.7 Kafka=41.3 Salesforce=1.2
+]
+
+[section title="Incidents & Action Items" style=card]
+
+[alert type=error text="etl_orders_daily: upstream Postgres replica lag 8min — downstream dashboards stale."]
+[alert type=warning text="ml_feature_store exceeded SLA by 6min — investigate Spark executor OOM."]
+[alert type=info text="crm_sync_hourly failing since API key rotation on 2026-05-24 — fix in progress."]
+
+[list style=check]
+- Restart etl_orders_daily after replica lag resolves
+- Increase Spark executor memory for ml_feature_store (2G → 4G)
+- Rotate CRM API key in secrets manager and redeploy
+[/list]
+
+[/section]

@@ -1,0 +1,63 @@
+@doc title="Campaign Performance — May 2026" theme=light
+
+# Marketing Campaign Report
+
+> May 2026 · All channels · USD
+
+## Top-Line Numbers
+
+[columns]
+[col]
+[metric label="Total Spend" value="$48,200" trend=+12% color=blue]
+[/col]
+[col]
+[metric label="Leads Generated" value="1,840" trend=+23% color=green]
+[/col]
+[col]
+[metric label="Cost per Lead" value="$26.2" trend=-9% color=green]
+[/col]
+[col]
+[metric label="MQL → SQL" value="18.4%" trend=+2.1% color=green]
+[/col]
+[/columns]
+
+## Spend by Channel
+
+[chart type=pie title="Ad Spend Distribution"
+  Google=38 LinkedIn=29 Meta=18 Content=10 Events=5
+]
+
+## Weekly Lead Volume
+
+[chart type=bar title="Leads by Week"
+  W1=380 W2=420 W3=510 W4=530
+]
+
+## Channel Performance
+
+[table cols="Channel,Spend,Leads,CPL,Conv Rate"
+  Google Search  | $18,300 | 720  | $25.4 | 4.2%
+  LinkedIn Ads   | $13,980 | 410  | $34.1 | 2.8%
+  Meta           | $8,670  | 480  | $18.1 | 3.1%
+  Content / SEO  | $4,820  | 180  | $26.8 | 6.4%
+  Events         | $2,430  | 50   | $48.6 | 8.2%
+]
+
+[section title="Insights & Next Steps" style=card]
+
+[badge text="Scaling" color=green]
+[badge text="Optimizing" color=blue]
+[badge text="Pausing" color=red]
+
+[alert type=success text="Meta CPL dropped 22% after creative refresh — scaling budget 20% in June."]
+[alert type=info text="Content / SEO showing highest conv rate — investing in 4 new pillar pages."]
+[alert type=warning text="LinkedIn CPL trending up — testing new audience segments next week."]
+
+[list style=check]
+- Increase Meta budget from $8.7k → $10.5k in June
+- Brief content team on 4 new pillar page topics
+- A/B test 3 new LinkedIn ad creatives by May 30
+- Set up attribution tracking for Events channel
+[/list]
+
+[/section]
