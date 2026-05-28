@@ -4,7 +4,7 @@ from .compiler import compile_to_html
 
 
 def main():
-    parser = argparse.ArgumentParser(prog="llm2page", description="Compile MiniDoc DSL to HTML")
+    parser = argparse.ArgumentParser(prog="minidoc", description="Compile MiniDoc DSL to HTML")
     parser.add_argument("input", nargs="?", help="Input .minidoc file (omit to read stdin)")
     parser.add_argument("-o", "--output", default="-", help="Output HTML file (default: stdout)")
     args = parser.parse_args()

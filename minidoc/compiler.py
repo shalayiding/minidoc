@@ -13,7 +13,7 @@ def compile_to_html(dsl: str) -> str:
     nodes = parse(dsl)
 
     doc_attrs = next((n.attrs for n in nodes if n.type == "doc_header"), {})
-    title = doc_attrs.get("title", "llm2page")
+    title = doc_attrs.get("title", "minidoc")
     theme = doc_attrs.get("theme", "light")
 
     has_chart   = any(n.type == "chart"   for n in _flatten(nodes))

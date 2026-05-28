@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 from fastmcp import FastMCP
 
-mcp = FastMCP("llm2page")
+mcp = FastMCP("minidoc")
 
 _REPO_ROOT = Path(__file__).parent.parent
 _PROMPT_FILE = _REPO_ROOT / "SYSTEM_PROMPT.md"
@@ -13,16 +13,16 @@ _RESULT_DIR = _REPO_ROOT / "result"
 
 
 def _compile(dsl: str) -> str:
-    """Always use fresh llm2page code — reload on every call during development."""
-    import llm2page.parser
-    import llm2page.renderer
-    import llm2page.compiler
-    import llm2page
-    importlib.reload(llm2page.parser)
-    importlib.reload(llm2page.renderer)
-    importlib.reload(llm2page.compiler)
-    importlib.reload(llm2page)
-    return llm2page.compile_to_html(dsl)
+    """Always use fresh minidoc code — reload on every call during development."""
+    import minidoc.parser
+    import minidoc.renderer
+    import minidoc.compiler
+    import minidoc
+    importlib.reload(minidoc.parser)
+    importlib.reload(minidoc.renderer)
+    importlib.reload(minidoc.compiler)
+    importlib.reload(minidoc)
+    return minidoc.compile_to_html(dsl)
 
 
 def _write_result(html: str, name: str = "") -> str:

@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "llm2page": {
+    "minidoc": {
       "type": "stdio",
       "command": "uv",
       "args": ["run", "python", "mcp/server.py"]

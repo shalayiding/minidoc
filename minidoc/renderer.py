@@ -303,7 +303,7 @@ def _tabs(n: Node) -> str:
             f'border-bottom:2px solid var(--pico-primary,#6366f1);'
         ) if idx == 0 else "background:transparent;color:#374151;border-bottom:2px solid transparent;"
         buttons.append(
-            f'<button data-group="{group_id}" onclick="llm2pageTab(\'{group_id}\',{idx})" '
+            f'<button data-group="{group_id}" onclick="minidocTab(\'{group_id}\',{idx})" '
             f'style="border:none;cursor:pointer;padding:0.6rem 1.25rem;font-size:0.9em;'
             f'font-weight:600;border-radius:6px 6px 0 0;{active_btn}">{title}</button>'
         )
@@ -315,7 +315,7 @@ def _tabs(n: Node) -> str:
 
     js = (
         f'<script>'
-        f'function llm2pageTab(g,idx){{'
+        f'function minidocTab(g,idx){{'
         f'document.querySelectorAll("[data-group=\'"+g+"\']").forEach(function(b,i){{'
         f'b.style.background=i===idx?"var(--pico-primary,#6366f1)":"transparent";'
         f'b.style.color=i===idx?"#fff":"#374151";'

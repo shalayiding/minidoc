@@ -1,11 +1,11 @@
-# llm2page
+# minidoc
 
 MiniDoc DSL → HTML compiler. LLM outputs compact DSL (~300 tokens), compiler renders it into a full HTML page with Pico CSS + Chart.js + Mermaid + highlight.js.
 
 ## Project layout
 
 ```
-llm2page/    ← Python package (parser, renderer, compiler, cli)
+minidoc/    ← Python package (parser, renderer, compiler, cli)
 examples/    ← .minidoc sample files
 mcp/         ← MCP server (FastMCP, stdio transport)
 result/      ← compiled HTML output (gitignored)
@@ -15,14 +15,14 @@ result/      ← compiled HTML output (gitignored)
 
 ```bash
 uv venv && uv pip install -e .
-uv run python -c "from llm2page import compile_to_html; print('ok')"
+uv run python -c "from minidoc import compile_to_html; print('ok')"
 ```
 
 ## Running
 
 ```bash
 # compile a .minidoc file
-uv run llm2page examples/netflix_architecture.minidoc -o result/out.html
+uv run minidoc examples/netflix_architecture.minidoc -o result/out.html
 
 # start MCP server
 uv run python mcp/server.py

@@ -1,4 +1,4 @@
-# llm2page
+# minidoc
 
 Output **MiniDoc DSL** for any report, dashboard, or structured document. Always call `render_and_open` with the full DSL when done.
 
