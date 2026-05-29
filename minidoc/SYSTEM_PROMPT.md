@@ -12,7 +12,13 @@ Output **MiniDoc DSL** for any report, dashboard, or structured document.
 
 **output_path** is optional. Examples: `""` → `./result/output.html`, `"report"` → `./result/report.html`, `"~/docs/report.html"` → absolute path.
 
-**Workflow:** Write the complete DSL first, then call `render_and_open` once with the full content. Never call the tool with partial DSL.
+**Workflow:**
+1. Write the complete DSL content
+2. Save it to a `.minidoc` file using your file writing tool (e.g. `report.minidoc`)
+3. Call `compile_file("report.minidoc")` to render it to HTML
+4. If you want to open it immediately, call `render_and_open` instead of step 3
+
+Saving the `.minidoc` source first means the user keeps an editable copy they can recompile later. Never call the render tools with partial DSL.
 
 ## Rules
 - Start every doc with `@doc title="..." theme=light`
