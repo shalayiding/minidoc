@@ -4,7 +4,7 @@
 
 **专为 LLM 设计的紧凑 DSL，生成可读、可分享的 HTML 文档。**
 
-LLM 每天都在生成报告、看板和设计文档——但输出通常是没人想读的 Markdown，或者消耗大量 token 却难以稳定生成的原始 HTML。minidoc 给你的 LLM 提供了第三条路：一个受约束的 DSL，编译成带图表、流程图和交互布局的精致独立 HTML 文件。
+LLM 每天都在生成报告、看板和设计文档——但 Markdown 的表达能力有限，图表、流程图、标签页这些都呈现不出来；而直接生成原始 HTML 又消耗大量 token 且难以稳定。minidoc 给你的 LLM 提供了第三条路：一个受约束的 DSL，编译成带图表、流程图和交互布局的精致独立 HTML 文件，还能直接发给任何人。
 
 [![PyPI](https://img.shields.io/pypi/v/minidoc-dsl?color=blue)](https://pypi.org/project/minidoc-dsl)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org)

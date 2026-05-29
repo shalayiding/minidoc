@@ -4,7 +4,7 @@
 
 **A compact DSL for LLMs to generate readable, shareable HTML documents.**
 
-LLMs already generate reports, dashboards, and design docs — but the output is usually Markdown nobody wants to read, or raw HTML that costs too many tokens to generate reliably. minidoc gives your LLM a better option: a constrained DSL that compiles to polished, self-contained HTML with charts, diagrams, and interactive layout.
+LLMs already generate reports, dashboards, and design docs — but Markdown has limited expressiveness (no charts, no diagrams, no tabs), and raw HTML costs too many tokens to generate reliably. minidoc gives your LLM a better option: a constrained DSL that compiles to polished, self-contained HTML with charts, diagrams, and interactive layout — ready to share with anyone, no tools required.
 
 [![PyPI](https://img.shields.io/pypi/v/minidoc-dsl?color=blue)](https://pypi.org/project/minidoc-dsl)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org)
