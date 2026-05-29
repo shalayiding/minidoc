@@ -2,8 +2,8 @@
   "mcpServers": {
     "minidoc": {
       "type": "stdio",
-      "command": "uv",
-      "args": ["run", "python", "mcp/server.py"]
+      "command": "uvx",
+      "args": ["--from", "git+https://github.com/Aierken/minidoc", "minidoc-mcp"]
     }
   }
 }

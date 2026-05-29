@@ -9,7 +9,8 @@ dependencies = [
 ]
 
 [project.scripts]
-minidoc = "minidoc.cli:main"
+minidoc     = "minidoc.cli:main"
+minidoc-mcp = "minidoc._mcp:main"
 
 [build-system]
 requires = ["hatchling"]
