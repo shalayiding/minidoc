@@ -2,9 +2,9 @@
 
 # minidoc
 
-**Stop writing documentation in Markdown. Write it once, render it beautifully.**
+**A compact DSL for LLMs to generate readable, shareable HTML documents.**
 
-A compact DSL that compiles to polished, self-contained HTML — with charts, diagrams, tabs, metrics, and syntax highlighting. Write the same amount, get dramatically more.
+LLMs already generate reports, dashboards, and design docs — but the output is usually Markdown nobody wants to read, or raw HTML that costs too many tokens to generate reliably. minidoc gives your LLM a better option: a constrained DSL that compiles to polished, self-contained HTML with charts, diagrams, and interactive layout.
 
 [![PyPI](https://img.shields.io/pypi/v/minidoc-dsl?color=blue)](https://pypi.org/project/minidoc-dsl)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org)
@@ -24,30 +24,33 @@ A compact DSL that compiles to polished, self-contained HTML — with charts, di
 
 ---
 
-## The problem with Markdown documentation
+## Why minidoc
 
-Markdown is everywhere — READMEs, wikis, design docs, postmortems. It's easy to write, but hard to read at scale. By the time a document has tables, code blocks, and a system diagram, it's a wall of symbols that no one wants to open.
+When you ask an LLM to produce a report, it has three options:
 
-minidoc was built to fix that. Write a compact DSL (or have an LLM write it), get back a self-contained HTML file with real charts, interactive tabs, Mermaid diagrams, and a clean visual layout. The kind of document people actually open.
+**Option 1 — Generate Markdown.** Easy for the LLM, but the output is a wall of symbols. No charts, no diagrams, no layout. The reader has to mentally parse it. Hard to share with non-technical stakeholders.
 
-## Real benchmark: URL shortener system design
+**Option 2 — Generate raw HTML.** The output looks good, but it costs 3× more tokens, and LLMs make frequent mistakes — unclosed tags, broken CSS units, broken JavaScript. Output quality varies every run.
 
-We compiled the same system design document in both Markdown and minidoc DSL and measured the result.
+**Option 3 — Generate minidoc DSL.** Same token cost as Markdown. The compiler handles all the HTML, CSS, and JS. Output is a polished, self-contained HTML file the reader can open in any browser — or forward as an email attachment.
 
-| | Markdown | minidoc DSL |
-|---|---|---|
-| Input size to write | 3,908 tokens | 4,598 tokens (~same effort) |
-| Output | Flat text + tables | **Interactive HTML, 13,394 tokens of rendered output** |
-| Charts | ❌ not supported | ✅ Chart.js — bar, line, pie, doughnut |
-| Architecture diagrams | ❌ not supported | ✅ Mermaid — flowchart, sequence, ER |
-| Tabs / accordions | ❌ not supported | ✅ built-in |
-| KPI / metric cards | ❌ not supported | ✅ built-in |
-| Syntax highlighting | Basic (renderer-dependent) | ✅ highlight.js, github-dark |
-| Shareable | Needs a Markdown renderer | ✅ Open in any browser, no tools needed |
+## Real numbers: URL shortener system design
 
-You write roughly the same amount. minidoc compiles it into something Markdown never could.
+We wrote the same system design document in both Markdown and minidoc DSL and measured the difference.
 
-> Source: [`benchmark/url_shortener/`](benchmark/url_shortener/) — minidoc DSL vs Markdown, measured with `tiktoken` (cl100k_base).
+| | LLM → Markdown | LLM → Raw HTML | LLM → minidoc DSL |
+|---|---|---|---|
+| Token cost | 3,908 | ~13,000+ | **4,598** |
+| LLM reliability | High | Low — CSS/JS errors | High — constrained syntax |
+| Charts & diagrams | ❌ | ✅ fragile | ✅ declarative |
+| Tabs / accordions | ❌ | ✅ fragile | ✅ built-in |
+| KPI / metric cards | ❌ | ✅ fragile | ✅ built-in |
+| Shareable without tools | ❌ needs renderer | ✅ | ✅ |
+| Compiled output | flat text | ~13,000 tokens | **13,394 tokens** |
+
+minidoc costs about the same as Markdown to generate, but produces an HTML document as rich as raw HTML — without the token waste or the reliability problems.
+
+> Benchmark source: [`benchmark/url_shortener/`](benchmark/url_shortener/) — measured with `tiktoken` (cl100k_base).
 
 ---
 

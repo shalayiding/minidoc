@@ -2,9 +2,9 @@
 
 # minidoc
 
-**不要再用 Markdown 写文档了。写一次，呈现得更好。**
+**专为 LLM 设计的紧凑 DSL，生成可读、可分享的 HTML 文档。**
 
-一个紧凑的 DSL，编译为精致的独立 HTML——内置图表、流程图、标签页、指标卡和代码高亮。写同样多的内容，得到的远不止于此。
+LLM 每天都在生成报告、看板和设计文档——但输出通常是没人想读的 Markdown，或者消耗大量 token 却难以稳定生成的原始 HTML。minidoc 给你的 LLM 提供了第三条路：一个受约束的 DSL，编译成带图表、流程图和交互布局的精致独立 HTML 文件。
 
 [![PyPI](https://img.shields.io/pypi/v/minidoc-dsl?color=blue)](https://pypi.org/project/minidoc-dsl)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org)
@@ -24,30 +24,33 @@
 
 ---
 
-## Markdown 文档的问题
+## 为什么用 minidoc
 
-Markdown 无处不在——README、Wiki、设计文档、故障复盘。写起来简单，但大规模阅读时体验很差。一旦文档里塞满了表格、代码块和系统图，它就变成了一堵没人想打开的符号墙。
+让 LLM 生成报告，通常有三种选择：
 
-minidoc 就是为了解决这个问题而生的。写一份紧凑的 DSL（或者让 LLM 来写），得到一份带有真实图表、可交互标签页、Mermaid 流程图和整洁视觉布局的独立 HTML 文件——那种人们真正会去打开的文档。
+**选项一 — 生成 Markdown。** LLM 写起来容易，但输出是一堵符号墙。没有图表，没有布局，读者要自己脑补。很难分享给非技术受众。
 
-## 实测对比：URL 短链系统设计文档
+**选项二 — 生成原始 HTML。** 输出好看，但消耗的 token 是 Markdown 的 3 倍以上，而且 LLM 经常出错——标签未闭合、CSS 单位错误、JavaScript 出 bug。每次生成质量不稳定。
 
-我们用同一份系统设计文档分别写了 Markdown 和 minidoc DSL 两个版本，然后对比了结果。
+**选项三 — 生成 minidoc DSL。** Token 消耗和 Markdown 相当。编译器负责处理所有 HTML、CSS 和 JS。输出是精致的独立 HTML 文件，读者用任意浏览器打开，或者直接作为邮件附件转发。
 
-| | Markdown | minidoc DSL |
-|---|---|---|
-| 写作输入量 | 3,908 tokens | 4,598 tokens（**工作量相当**） |
-| 输出结果 | 纯文本 + 表格 | **可交互 HTML，渲染内容达 13,394 tokens** |
-| 图表 | ❌ 不支持 | ✅ Chart.js — 柱状图、折线图、饼图 |
-| 架构流程图 | ❌ 不支持 | ✅ Mermaid — 流程图、时序图、ER 图 |
-| 标签页 / 折叠面板 | ❌ 不支持 | ✅ 内置 |
-| KPI / 指标卡 | ❌ 不支持 | ✅ 内置 |
-| 代码高亮 | 取决于渲染器 | ✅ highlight.js，github-dark 主题 |
-| 可分享性 | 需要 Markdown 渲染器 | ✅ 任意浏览器直接打开，零依赖 |
+## 实测数据：URL 短链系统设计文档
 
-写的内容差不多，minidoc 编译出的东西是 Markdown 永远做不到的。
+同一份系统设计文档，分别用三种方式生成，对比结果如下：
 
-> 数据来源：[`benchmark/url_shortener/`](benchmark/url_shortener/) — minidoc DSL vs Markdown，使用 `tiktoken`（cl100k_base）测量。
+| | LLM → Markdown | LLM → 原始 HTML | LLM → minidoc DSL |
+|---|---|---|---|
+| Token 消耗 | 3,908 | ~13,000+ | **4,598** |
+| LLM 稳定性 | 高 | 低 — CSS/JS 易出错 | 高 — 语法受约束 |
+| 图表 / 流程图 | ❌ | ✅ 不稳定 | ✅ 声明式，一行搞定 |
+| 标签页 / 折叠面板 | ❌ | ✅ 不稳定 | ✅ 内置 |
+| KPI / 指标卡 | ❌ | ✅ 不稳定 | ✅ 内置 |
+| 无工具直接分享 | ❌ 需要渲染器 | ✅ | ✅ |
+| 编译输出大小 | 纯文本 | ~13,000 tokens | **13,394 tokens** |
+
+minidoc 的生成成本和 Markdown 相当，但输出的 HTML 文档和原始 HTML 一样丰富——没有 token 浪费，也没有稳定性问题。
+
+> 数据来源：[`benchmark/url_shortener/`](benchmark/url_shortener/) — 使用 `tiktoken`（cl100k_base）测量。
 
 ---
 
