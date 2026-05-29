@@ -1,41 +1,71 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>minidoc — Examples</title>
+  <title>minidoc</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script><script>document.addEventListener("DOMContentLoaded",()=>hljs.highlightAll())</script>
+  
   <style>
-    body { max-width: 800px; margin: 0 auto; padding: 3rem 1.5rem; }
-    .card { border: 1px solid #e5e7eb; border-radius: 10px; padding: 1.5rem 2rem; margin: 1rem 0; display: flex; justify-content: space-between; align-items: center; text-decoration: none; color: inherit; transition: box-shadow 0.15s; }
-    .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); text-decoration: none; }
-    .card-meta { font-size: 0.85em; color: #6b7280; margin-top: 0.25rem; }
-    .tag { background: #eff6ff; color: #3b82f6; border-radius: 999px; padding: 0.2em 0.75em; font-size: 0.78em; font-weight: 600; }
-    .arrow { font-size: 1.3rem; color: #9ca3af; }
+    body { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem; }
+    details > summary { list-style: none; }
+    details > summary::-webkit-details-marker { display: none; }
+    details > summary::after { display: none; }
+    details > summary::marker { display: none; }
   </style>
 </head>
 <body>
-  <hgroup>
+  <main class="container">
     <h1>minidoc</h1>
-    <p>Compact DSL → polished HTML. Browse live examples below.</p>
-  </hgroup>
+<blockquote><p>Stop writing documentation in Markdown. Write it once, render it beautifully.</p></blockquote>
+<p>A compact DSL that compiles to polished, self-contained HTML — with charts, diagrams, tabs, metrics, and syntax highlighting. Write the same amount, get dramatically more.</p>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem"><div></div>
+<div></div>
+<div></div>
+<div></div></div>
+<hr style="margin:1.5rem 0;opacity:0.3">
+<h2>The problem with Markdown documentation</h2>
+<p>Markdown is everywhere — READMEs, wikis, design docs, postmortems. It's easy to write, but hard to read at scale. By the time a document has tables, code blocks, and a system diagram, it's a wall of symbols that no one wants to open.</p>
+<p>minidoc was built to fix that. Write a compact DSL (or have an LLM write it), get back a self-contained HTML file with real charts, interactive tabs, Mermaid diagrams, and a clean visual layout. The kind of document people actually open.</p>
+<hr style="margin:1.5rem 0;opacity:0.3">
+<h2>Real benchmark: URL shortener system design</h2>
+<p>We compiled the same system design document in both Markdown and minidoc DSL and measured the result.</p>
+<figure><table><thead><tr><th></th><th>Markdown</th><th>minidoc DSL</th></tr></thead><tbody><tr><td>Input tokens to write</td><td>3908</td><td>4598 (~same effort)</td></tr><tr><td>Charts</td><td>❌ not supported</td><td>✅ Chart.js</td></tr><tr><td>Architecture diagrams</td><td>❌ not supported</td><td>✅ Mermaid</td></tr><tr><td>Tabs / accordions</td><td>❌ not supported</td><td>✅ built-in</td></tr><tr><td>KPI / metric cards</td><td>❌ not supported</td><td>✅ built-in</td></tr><tr><td>Syntax highlighting</td><td>renderer-dependent</td><td>✅ highlight.js</td></tr><tr><td>Shareable without tools</td><td>❌</td><td>✅ any browser</td></tr><tr><td>Compiled output size</td><td>flat text</td><td><strong>13394 tokens of rendered HTML</strong></td></tr></tbody></table></figure>
+<div style="background:#3b82f60d;border:1px solid #3b82f630;border-radius:8px;padding:1rem 1.25rem;margin:0.75rem 0;display:flex;gap:0.75rem;align-items:flex-start"><span style="font-size:1.3rem;line-height:1.4">💡</span><div><div style="font-weight:600;color:#3b82f6;margin-bottom:0.2rem">Same effort. Dramatically better output.</div><div style="font-size:0.95em">You write roughly the same amount. minidoc compiles it into something Markdown never could.</div></div></div>
+<hr style="margin:1.5rem 0;opacity:0.3">
+<h2>Live examples</h2>
+<section style="background:var(--pico-card-background-color,#fff);border-radius:8px;padding:1.5rem;margin:1rem 0;box-shadow:0 1px 6px rgba(0,0,0,0.08);"><h3>URL Shortener — System Design</h3><p>Senior-level distributed system design: 100M writes/day · 10B redirects/day · 99.99% availability. Architecture diagram, data model, scalability strategy, and design decisions — all in one page.</p>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem"><div></div>
+<div></div>
+<div></div>
+<div></div></div>
+<div style="background:#eff6ff;border-left:4px solid #3b82f6;padding:0.75rem 1rem;border-radius:4px;margin:0.75rem 0">ℹ️ <a href="url_shortener.html">→ Open live example</a></div></section>
+<hr style="margin:1.5rem 0;opacity:0.3">
+<h2>Quick start</h2>
+<div style="border:1px solid #30363d;border-radius:8px;overflow:hidden;margin:1rem 0"><div style="background:#161b22;border-bottom:1px solid #30363d;padding:0.35rem 1rem;font-size:0.8em;color:#8b949e;font-family:monospace">Install</div><pre style="margin:0;padding:0;overflow-x:auto;background:#0d1117"><code class="language-bash" style="border-radius:0;padding:1rem;display:block;background:#0d1117">pip install minidoc-dsl</code></pre></div>
+<div style="border:1px solid #30363d;border-radius:8px;overflow:hidden;margin:1rem 0"><div style="background:#161b22;border-bottom:1px solid #30363d;padding:0.35rem 1rem;font-size:0.8em;color:#8b949e;font-family:monospace">Compile</div><pre style="margin:0;padding:0;overflow-x:auto;background:#0d1117"><code class="language-bash" style="border-radius:0;padding:1rem;display:block;background:#0d1117">minidoc report.minidoc -o report.html</code></pre></div>
+<div style="border:1px solid #30363d;border-radius:8px;overflow:hidden;margin:1rem 0"><div style="background:#161b22;border-bottom:1px solid #30363d;padding:0.35rem 1rem;font-size:0.8em;color:#8b949e;font-family:monospace">Python API</div><pre style="margin:0;padding:0;overflow-x:auto;background:#0d1117"><code class="language-python" style="border-radius:0;padding:1rem;display:block;background:#0d1117">from minidoc import compile_to_html
 
-  <hr>
-
-  <a class="card" href="url_shortener.html">
-    <div>
-      <strong>URL Shortener — System Design</strong>
-      <div class="card-meta">Architecture diagram · Data model · Scalability · Design decisions</div>
-      <div style="margin-top:0.5rem"><span class="tag">benchmark</span></div>
-    </div>
-    <span class="arrow">→</span>
-  </a>
-
-  <hr>
-
-  <p style="font-size:0.85em;color:#6b7280">
-    Built with <a href="https://github.com/shalayiding/minidoc">minidoc</a> ·
-    Each page is a self-contained HTML file compiled from ~300 tokens of DSL.
-  </p>
+html = compile_to_html(dsl_string)</code></pre></div>
+<hr style="margin:1.5rem 0;opacity:0.3">
+<h2>MCP server — for Claude and LLM agents</h2>
+<p>Add to your <code style="background:#f3f4f6;padding:0.15em 0.4em;border-radius:3px;font-size:0.88em;color:#e83e8c">.mcp.json</code> — no cloning, no setup, no venv:</p>
+<div style="border:1px solid #30363d;border-radius:8px;overflow:hidden;margin:1rem 0"><div style="background:#161b22;border-bottom:1px solid #30363d;padding:0.35rem 1rem;font-size:0.8em;color:#8b949e;font-family:monospace">.mcp.json</div><pre style="margin:0;padding:0;overflow-x:auto;background:#0d1117"><code class="language-json" style="border-radius:0;padding:1rem;display:block;background:#0d1117">{
+&quot;mcpServers&quot;: {
+&quot;minidoc&quot;: {
+&quot;type&quot;: &quot;stdio&quot;,
+&quot;command&quot;: &quot;uvx&quot;,
+&quot;args&quot;: [&quot;minidoc-mcp&quot;]
+}
+}
+}</code></pre></div>
+<figure><table><thead><tr><th>Tool</th><th>Description</th></tr></thead><tbody><tr><td>render_and_open(dsl)</td><td>Compile DSL → HTML, save, open in browser</td></tr><tr><td>render_minidoc(dsl)</td><td>Compile DSL → HTML, return file path</td></tr><tr><td>minidoc_guide prompt</td><td>Load full DSL reference into model context</td></tr></tbody></table></figure>
+<hr style="margin:1.5rem 0;opacity:0.3">
+<h2>Frontend stack</h2>
+<figure><table><thead><tr><th>Layer</th><th>Library</th></tr></thead><tbody><tr><td>CSS</td><td>Pico CSS v2 — classless, CSS-variable theming</td></tr><tr><td>Charts</td><td>Chart.js</td></tr><tr><td>Diagrams</td><td>Mermaid.js v11</td></tr><tr><td>Syntax highlight</td><td>highlight.js — github-dark theme</td></tr></tbody></table></figure>
+<div style="background:#f0fdf4;border-left:4px solid #22c55e;padding:0.75rem 1rem;border-radius:4px;margin:0.75rem 0">✅ All libraries loaded from CDN. Compiled HTML is fully self-contained — open in any browser, share as an attachment.</div>
+  </main>
 </body>
 </html>
