@@ -14,11 +14,11 @@ LLMs already generate reports, dashboards, and design docs — but Markdown has 
 
 | Example | Audience | Markdown | minidoc DSL | Live HTML |
 |---------|----------|----------|-------------|-----------|
-| URL Shortener — System Design | Engineering | [.md](showcase/url_shortener_system_design.md) | [.minidoc](showcase/url_shortener_system_design.minidoc) | [→ Open](https://shalayiding.github.io/minidoc/url_shortener.html) |
-| Q3 Business Review | Executive | [.md](showcase/q3_business_report.md) | [.minidoc](showcase/q3_business_report.minidoc) | [→ Open](https://shalayiding.github.io/minidoc/q3_business_report.html) |
-| Incident Postmortem | DevOps | [.md](showcase/incident_postmortem.md) | [.minidoc](showcase/incident_postmortem.minidoc) | [→ Open](https://shalayiding.github.io/minidoc/incident_postmortem.html) |
-| Sales Pipeline Dashboard | Sales | [.md](showcase/sales_pipeline.md) | [.minidoc](showcase/sales_pipeline.minidoc) | [→ Open](https://shalayiding.github.io/minidoc/sales_pipeline.html) |
-| ML Experiment Log | Data Science | [.md](showcase/ml_experiment.md) | [.minidoc](showcase/ml_experiment.minidoc) | [→ Open](https://shalayiding.github.io/minidoc/ml_experiment.html) |
+| URL Shortener — System Design | Engineering | [.md](showcase/url_shortener_system_design.md) `3,908 tokens` | [.minidoc](showcase/url_shortener_system_design.minidoc) `4,598 tokens` | [→ Open](https://shalayiding.github.io/minidoc/url_shortener.html) `13,432 tokens` |
+| Q3 Business Review | Executive | [.md](showcase/q3_business_report.md) `868 tokens` | [.minidoc](showcase/q3_business_report.minidoc) `1,060 tokens` | [→ Open](https://shalayiding.github.io/minidoc/q3_business_report.html) `5,526 tokens` |
+| Incident Postmortem | DevOps | [.md](showcase/incident_postmortem.md) `958 tokens` | [.minidoc](showcase/incident_postmortem.minidoc) `1,065 tokens` | [→ Open](https://shalayiding.github.io/minidoc/incident_postmortem.html) `3,553 tokens` |
+| Sales Pipeline Dashboard | Sales | [.md](showcase/sales_pipeline.md) `891 tokens` | [.minidoc](showcase/sales_pipeline.minidoc) `1,182 tokens` | [→ Open](https://shalayiding.github.io/minidoc/sales_pipeline.html) `4,596 tokens` |
+| ML Experiment Log | Data Science | [.md](showcase/ml_experiment.md) `1,158 tokens` | [.minidoc](showcase/ml_experiment.minidoc) `1,456 tokens` | [→ Open](https://shalayiding.github.io/minidoc/ml_experiment.html) `5,187 tokens` |
 
 </div>
 
@@ -277,14 +277,6 @@ content here
 **Chart types:** `bar` `line` `pie` `doughnut`  
 **Code languages:** `python` `javascript` `typescript` `sql` `bash` `json` `yaml` `go` `rust`  
 **List styles:** `bullet` `numbered` `check`
-
----
-
-## Example documents
-
-| Example | Markdown | minidoc DSL | Rendered HTML |
-|---------|----------|-------------|---------------|
-| **URL Shortener — System Design**<br>Architecture · Data model · Scalability · Design decisions | [View .md](showcase/url_shortener_system_design.md) | [View .minidoc](showcase/url_shortener_system_design.minidoc) | [Open HTML →](https://shalayiding.github.io/minidoc/url_shortener.html) |
 
 ---
 

@@ -14,11 +14,11 @@ LLM 每天都在生成报告、看板和设计文档——但 Markdown 的表达
 
 | 示例 | 受众 | Markdown | minidoc DSL | 在线 HTML |
 |------|------|----------|-------------|-----------|
-| URL 短链系统设计 | 工程师 | [.md](showcase/url_shortener_system_design.md) | [.minidoc](showcase/url_shortener_system_design.minidoc) | [→ 打开](https://shalayiding.github.io/minidoc/url_shortener.html) |
-| Q3 业务季报 | 管理层 | [.md](showcase/q3_business_report.md) | [.minidoc](showcase/q3_business_report.minidoc) | [→ 打开](https://shalayiding.github.io/minidoc/q3_business_report.html) |
-| 故障复盘 | DevOps | [.md](showcase/incident_postmortem.md) | [.minidoc](showcase/incident_postmortem.minidoc) | [→ 打开](https://shalayiding.github.io/minidoc/incident_postmortem.html) |
-| 销售漏斗看板 | 销售团队 | [.md](showcase/sales_pipeline.md) | [.minidoc](showcase/sales_pipeline.minidoc) | [→ 打开](https://shalayiding.github.io/minidoc/sales_pipeline.html) |
-| ML 实验追踪 | 数据科学 | [.md](showcase/ml_experiment.md) | [.minidoc](showcase/ml_experiment.minidoc) | [→ 打开](https://shalayiding.github.io/minidoc/ml_experiment.html) |
+| URL 短链系统设计 | 工程师 | [.md](showcase/url_shortener_system_design.md) `3,908 tokens` | [.minidoc](showcase/url_shortener_system_design.minidoc) `4,598 tokens` | [→ 打开](https://shalayiding.github.io/minidoc/url_shortener.html) `13,432 tokens` |
+| Q3 业务季报 | 管理层 | [.md](showcase/q3_business_report.md) `868 tokens` | [.minidoc](showcase/q3_business_report.minidoc) `1,060 tokens` | [→ 打开](https://shalayiding.github.io/minidoc/q3_business_report.html) `5,526 tokens` |
+| 故障复盘 | DevOps | [.md](showcase/incident_postmortem.md) `958 tokens` | [.minidoc](showcase/incident_postmortem.minidoc) `1,065 tokens` | [→ 打开](https://shalayiding.github.io/minidoc/incident_postmortem.html) `3,553 tokens` |
+| 销售漏斗看板 | 销售团队 | [.md](showcase/sales_pipeline.md) `891 tokens` | [.minidoc](showcase/sales_pipeline.minidoc) `1,182 tokens` | [→ 打开](https://shalayiding.github.io/minidoc/sales_pipeline.html) `4,596 tokens` |
+| ML 实验追踪 | 数据科学 | [.md](showcase/ml_experiment.md) `1,158 tokens` | [.minidoc](showcase/ml_experiment.minidoc) `1,456 tokens` | [→ 打开](https://shalayiding.github.io/minidoc/ml_experiment.html) `5,187 tokens` |
 
 </div>
 
