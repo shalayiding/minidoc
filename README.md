@@ -12,7 +12,7 @@ LLMs already generate reports, dashboards, and design docs — but Markdown has 
 
 [English](README.md) · [中文](README_zh.md)
 
-| Example | Audience | Markdown | minidoc DSL | Live HTML |
+| Example | Audience | Markdown | minidoc DSL | Live HTML (compiled by minidoc) |
 |---------|----------|----------|-------------|-----------|
 | URL Shortener — System Design | Engineering | [.md](showcase/url_shortener_system_design.md) `3,908 tokens` | [.minidoc](showcase/url_shortener_system_design.minidoc) `4,598 tokens` | [→ Open](https://shalayiding.github.io/minidoc/url_shortener.html) `13,432 tokens` |
 | Q3 Business Review | Executive | [.md](showcase/q3_business_report.md) `868 tokens` | [.minidoc](showcase/q3_business_report.minidoc) `1,060 tokens` | [→ Open](https://shalayiding.github.io/minidoc/q3_business_report.html) `5,526 tokens` |
