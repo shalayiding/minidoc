@@ -12,7 +12,9 @@ A compact DSL that compiles to polished, self-contained HTML — with charts, di
 
 [English](README.md) · [中文](README_zh.md)
 
-**[→ Live examples](https://shalayiding.github.io/minidoc/)**
+| Example | Markdown | minidoc DSL | Live HTML |
+|---------|----------|-------------|-----------|
+| URL Shortener — System Design | [.md](benchmark/url_shortener/url_shortener_system_design.md) | [.minidoc](benchmark/url_shortener/url_shortener_system_design.minidoc) | [→ Open](https://shalayiding.github.io/minidoc/url_shortener.html) |
 
 </div>
 

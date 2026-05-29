@@ -12,7 +12,9 @@
 
 [English](README.md) · [中文](README_zh.md)
 
-**[→ 在线示例](https://shalayiding.github.io/minidoc/)**
+| 示例 | Markdown | minidoc DSL | 在线 HTML |
+|------|----------|-------------|-----------|
+| URL 短链系统设计 | [.md](benchmark/url_shortener/url_shortener_system_design.md) | [.minidoc](benchmark/url_shortener/url_shortener_system_design.minidoc) | [→ 打开](https://shalayiding.github.io/minidoc/url_shortener.html) |
 
 </div>
 
