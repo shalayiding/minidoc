@@ -1,12 +1,20 @@
 [project]
 name = "minidoc-dsl"
-version = "0.1.0"
-description = "Compile MiniDoc DSL to beautiful HTML pages"
+version = "0.1.1"
+description = "Stop writing docs in Markdown. Write compact DSL, get polished HTML with charts, diagrams, and more."
+readme = "README.md"
 requires-python = ">=3.11"
+license = { text = "MIT" }
+
 dependencies = [
     "fastmcp>=3.3.1",
     "tiktoken>=0.13.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/shalayiding/minidoc"
+Documentation = "https://shalayiding.github.io/minidoc/"
+Repository = "https://github.com/shalayiding/minidoc"
 
 [project.scripts]
 minidoc     = "minidoc.cli:main"
