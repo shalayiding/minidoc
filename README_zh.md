@@ -6,11 +6,13 @@
 
 一个紧凑的 DSL，编译为精致的独立 HTML——内置图表、流程图、标签页、指标卡和代码高亮。写同样多的内容，得到的远不止于此。
 
-[![PyPI](https://img.shields.io/pypi/v/minidoc?color=blue)](https://pypi.org/project/minidoc)
+[![PyPI](https://img.shields.io/pypi/v/minidoc-dsl?color=blue)](https://pypi.org/project/minidoc-dsl)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 [English](README.md) · [中文](README_zh.md)
+
+**[→ 在线示例](https://shalayiding.github.io/minidoc/)**
 
 </div>
 

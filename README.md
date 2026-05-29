@@ -6,11 +6,13 @@
 
 A compact DSL that compiles to polished, self-contained HTML — with charts, diagrams, tabs, metrics, and syntax highlighting. Write the same amount, get dramatically more.
 
-[![PyPI](https://img.shields.io/pypi/v/minidoc?color=blue)](https://pypi.org/project/minidoc)
+[![PyPI](https://img.shields.io/pypi/v/minidoc-dsl?color=blue)](https://pypi.org/project/minidoc-dsl)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 [English](README.md) · [中文](README_zh.md)
+
+**[→ Live examples](https://shalayiding.github.io/minidoc/)**
 
 </div>
 
