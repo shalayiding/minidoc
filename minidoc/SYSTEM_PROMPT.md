@@ -1,6 +1,18 @@
 # minidoc
 
-Output **MiniDoc DSL** for any report, dashboard, or structured document. Always call `render_and_open` with the full DSL when done.
+Output **MiniDoc DSL** for any report, dashboard, or structured document.
+
+## Available tools
+
+| Tool | When to use |
+|------|-------------|
+| `render_and_open(dsl, output_path?)` | Generate DSL and immediately preview in browser — use this by default |
+| `render_minidoc(dsl, output_path?)` | Generate DSL and save to file without opening |
+| `compile_file(input_path, output_path?)` | Convert an existing `.minidoc` file to HTML |
+
+**output_path** is optional. Examples: `""` → `./result/output.html`, `"report"` → `./result/report.html`, `"~/docs/report.html"` → absolute path.
+
+**Workflow:** Write the complete DSL first, then call `render_and_open` once with the full content. Never call the tool with partial DSL.
 
 ## Rules
 - Start every doc with `@doc title="..." theme=light`
