@@ -138,12 +138,6 @@ with open("report.html", "w") as f:
 
 ### MCP 服务器（供 Claude 和 LLM Agent 使用）
 
-启动服务器：
-
-```bash
-uvx minidoc-mcp
-```
-
 在 `.mcp.json` 或 Claude Code 设置中添加：
 
 ```json
@@ -162,8 +156,8 @@ uvx minidoc-mcp
 
 | 工具 | 说明 |
 |------|------|
-| `render_and_open(dsl, name?)` | 编译 DSL，保存到 `result/`，直接打开浏览器 |
-| `render_minidoc(dsl, name?)` | 编译并保存，返回文件路径 |
+| `render_and_open(dsl, output_path?)` | 编译 DSL，保存到指定路径，打开浏览器 |
+| `render_minidoc(dsl, output_path?)` | 编译 DSL，保存到指定路径，返回文件路径 |
 
 **可用 Prompt：**
 

@@ -138,12 +138,6 @@ with open("report.html", "w") as f:
 
 ### MCP server (for Claude and LLM agents)
 
-Start the server:
-
-```bash
-uvx minidoc-mcp
-```
-
 Add to `.mcp.json` (or Claude Code settings):
 
 ```json
@@ -162,8 +156,8 @@ Add to `.mcp.json` (or Claude Code settings):
 
 | Tool | Description |
 |------|-------------|
-| `render_and_open(dsl, name?)` | Compile DSL, save to `result/`, open in browser |
-| `render_minidoc(dsl, name?)` | Compile and save, return file path |
+| `render_and_open(dsl, output_path?)` | Compile DSL, save to path, open in browser |
+| `render_minidoc(dsl, output_path?)` | Compile DSL, save to path, return file path |
 
 **Available prompts:**
 
