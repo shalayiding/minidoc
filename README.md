@@ -58,6 +58,8 @@ minidoc costs about the same as Markdown to generate, but produces an HTML docum
 
 ```bash
 pip install minidoc-dsl
+# or
+uv add minidoc-dsl
 ```
 
 Create `report.minidoc`:
