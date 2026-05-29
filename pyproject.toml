@@ -12,6 +12,9 @@ dependencies = [
 minidoc     = "minidoc.cli:main"
 minidoc-mcp = "minidoc._mcp:main"
 
+[tool.hatch.build.targets.wheel]
+packages = ["minidoc"]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
