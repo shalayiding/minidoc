@@ -148,7 +148,7 @@ Add to `.mcp.json` (or Claude Code settings):
     "minidoc": {
       "type": "stdio",
       "command": "uvx",
-      "args": ["minidoc-mcp"]
+      "args": ["--from", "minidoc-dsl", "minidoc-mcp"]
     }
   }
 }

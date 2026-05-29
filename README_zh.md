@@ -148,7 +148,7 @@ with open("report.html", "w") as f:
     "minidoc": {
       "type": "stdio",
       "command": "uvx",
-      "args": ["minidoc-mcp"]
+      "args": ["--from", "minidoc-dsl", "minidoc-mcp"]
     }
   }
 }
