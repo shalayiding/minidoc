@@ -107,6 +107,16 @@ def minidoc_guide() -> str:
 
 
 @mcp.tool()
+def get_guide() -> str:
+    """Return the full MiniDoc DSL reference.
+
+    Call this first to learn how to write .minidoc files before calling compile_file.
+    Returns the complete syntax reference including all components, rules, and examples.
+    """
+    return files("minidoc").joinpath("SYSTEM_PROMPT.md").read_text(encoding="utf-8")
+
+
+@mcp.tool()
 def compile_file(input_path: str, output_path: str = "", open: bool = False) -> str:
     """Compile a .minidoc file to a self-contained HTML file.
 
