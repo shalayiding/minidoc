@@ -1,5 +1,5 @@
 [project]
-name = "minidoc"
+name = "minidoc-dsl"
 version = "0.1.0"
 description = "Compile MiniDoc DSL to beautiful HTML pages"
 requires-python = ">=3.11"
