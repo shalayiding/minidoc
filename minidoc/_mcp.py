@@ -4,10 +4,11 @@ import sys
 from pathlib import Path
 from importlib.resources import files
 
+from importlib.metadata import version as _pkg_version
 from fastmcp import FastMCP
 from .compiler import compile_to_html
 
-mcp = FastMCP("minidoc")
+mcp = FastMCP("minidoc", version=_pkg_version("minidoc-dsl"))
 
 _DSL_REFERENCE = """
 ═══════════════════════════════════════════
