@@ -14,7 +14,7 @@ LLMs already generate reports, dashboards, and design docs — but Markdown has 
 
 | Example | Audience | Markdown | minidoc DSL | Live HTML |
 |---------|----------|----------|-------------|-----------|
-| URL Shortener — System Design | Engineering | [.md](benchmark/url_shortener/url_shortener_system_design.md) | [.minidoc](benchmark/url_shortener/url_shortener_system_design.minidoc) | [→ Open](https://shalayiding.github.io/minidoc/url_shortener.html) |
+| URL Shortener — System Design | Engineering | [.md](showcase/url_shortener_system_design.md) | [.minidoc](showcase/url_shortener_system_design.minidoc) | [→ Open](https://shalayiding.github.io/minidoc/url_shortener.html) |
 | Q3 Business Review | Executive | [.md](showcase/q3_business_report.md) | [.minidoc](showcase/q3_business_report.minidoc) | [→ Open](https://shalayiding.github.io/minidoc/q3_business_report.html) |
 | Incident Postmortem | DevOps | [.md](showcase/incident_postmortem.md) | [.minidoc](showcase/incident_postmortem.minidoc) | [→ Open](https://shalayiding.github.io/minidoc/incident_postmortem.html) |
 | Sales Pipeline Dashboard | Sales | [.md](showcase/sales_pipeline.md) | [.minidoc](showcase/sales_pipeline.minidoc) | [→ Open](https://shalayiding.github.io/minidoc/sales_pipeline.html) |
@@ -50,7 +50,7 @@ We wrote the same system design document in both Markdown and minidoc DSL and me
 
 minidoc costs about the same as Markdown to generate, but produces an HTML document as rich as raw HTML — without the token waste or the reliability problems.
 
-> Benchmark source: [`benchmark/url_shortener/`](benchmark/url_shortener/) — measured with `tiktoken` (cl100k_base).
+> Benchmark source: [`showcase/`](showcase/) — measured with `tiktoken` (cl100k_base).
 
 ---
 
@@ -141,7 +141,7 @@ with open("report.html", "w") as f:
 Start the server:
 
 ```bash
-uv run python mcp/server.py
+uvx minidoc-mcp
 ```
 
 Add to `.mcp.json` (or Claude Code settings):
@@ -284,7 +284,7 @@ content here
 
 | Example | Markdown | minidoc DSL | Rendered HTML |
 |---------|----------|-------------|---------------|
-| **URL Shortener — System Design**<br>Architecture · Data model · Scalability · Design decisions | [View .md](benchmark/url_shortener/url_shortener_system_design.md) | [View .minidoc](benchmark/url_shortener/url_shortener_system_design.minidoc) | [Open HTML →](https://shalayiding.github.io/minidoc/url_shortener.html) |
+| **URL Shortener — System Design**<br>Architecture · Data model · Scalability · Design decisions | [View .md](showcase/url_shortener_system_design.md) | [View .minidoc](showcase/url_shortener_system_design.minidoc) | [Open HTML →](https://shalayiding.github.io/minidoc/url_shortener.html) |
 
 ---
 

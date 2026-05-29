@@ -14,7 +14,7 @@ LLM 每天都在生成报告、看板和设计文档——但 Markdown 的表达
 
 | 示例 | 受众 | Markdown | minidoc DSL | 在线 HTML |
 |------|------|----------|-------------|-----------|
-| URL 短链系统设计 | 工程师 | [.md](benchmark/url_shortener/url_shortener_system_design.md) | [.minidoc](benchmark/url_shortener/url_shortener_system_design.minidoc) | [→ 打开](https://shalayiding.github.io/minidoc/url_shortener.html) |
+| URL 短链系统设计 | 工程师 | [.md](showcase/url_shortener_system_design.md) | [.minidoc](showcase/url_shortener_system_design.minidoc) | [→ 打开](https://shalayiding.github.io/minidoc/url_shortener.html) |
 | Q3 业务季报 | 管理层 | [.md](showcase/q3_business_report.md) | [.minidoc](showcase/q3_business_report.minidoc) | [→ 打开](https://shalayiding.github.io/minidoc/q3_business_report.html) |
 | 故障复盘 | DevOps | [.md](showcase/incident_postmortem.md) | [.minidoc](showcase/incident_postmortem.minidoc) | [→ 打开](https://shalayiding.github.io/minidoc/incident_postmortem.html) |
 | 销售漏斗看板 | 销售团队 | [.md](showcase/sales_pipeline.md) | [.minidoc](showcase/sales_pipeline.minidoc) | [→ 打开](https://shalayiding.github.io/minidoc/sales_pipeline.html) |
@@ -50,7 +50,7 @@ LLM 每天都在生成报告、看板和设计文档——但 Markdown 的表达
 
 minidoc 的生成成本和 Markdown 相当，但输出的 HTML 文档和原始 HTML 一样丰富——没有 token 浪费，也没有稳定性问题。
 
-> 数据来源：[`benchmark/url_shortener/`](benchmark/url_shortener/) — 使用 `tiktoken`（cl100k_base）测量。
+> 数据来源：[`showcase/`](showcase/) — 使用 `tiktoken`（cl100k_base）测量。
 
 ---
 
@@ -141,7 +141,7 @@ with open("report.html", "w") as f:
 启动服务器：
 
 ```bash
-uv run python mcp/server.py
+uvx minidoc-mcp
 ```
 
 在 `.mcp.json` 或 Claude Code 设置中添加：
@@ -284,7 +284,7 @@ flowchart TD
 
 | 示例 | Markdown 源文件 | minidoc DSL | 渲染 HTML |
 |------|----------------|-------------|-----------|
-| **URL 短链系统设计**<br>架构图 · 数据模型 · 可扩展性 · 设计决策 | [查看 .md](benchmark/url_shortener/url_shortener_system_design.md) | [查看 .minidoc](benchmark/url_shortener/url_shortener_system_design.minidoc) | [打开 HTML →](https://shalayiding.github.io/minidoc/url_shortener.html) |
+| **URL 短链系统设计**<br>架构图 · 数据模型 · 可扩展性 · 设计决策 | [查看 .md](showcase/url_shortener_system_design.md) | [查看 .minidoc](showcase/url_shortener_system_design.minidoc) | [打开 HTML →](https://shalayiding.github.io/minidoc/url_shortener.html) |
 
 ---
 
