@@ -57,7 +57,7 @@ minidoc 的生成成本和 Markdown 相当，但输出的 HTML 文档和原始 H
 ## 快速开始
 
 ```bash
-pip install minidoc
+pip install minidoc-dsl
 ```
 
 新建 `report.minidoc`：
