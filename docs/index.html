@@ -21,10 +21,12 @@
     <h1>minidoc</h1>
 <blockquote><p>Stop writing documentation in Markdown. Write it once, render it beautifully.</p></blockquote>
 <p>A compact DSL that compiles to polished, self-contained HTML — with charts, diagrams, tabs, metrics, and syntax highlighting. Write the same amount, get dramatically more.</p>
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem"><div></div>
-<div></div>
-<div></div>
-<div></div></div>
+<div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin:0.75rem 0">
+  <span style="background:#3b82f61a;color:#3b82f6;border:1px solid #3b82f640;border-radius:999px;padding:0.2em 0.75em;font-size:0.82em;font-weight:600">pip install minidoc-dsl</span>
+  <span style="background:#6b72801a;color:#6b7280;border:1px solid #6b728040;border-radius:999px;padding:0.2em 0.75em;font-size:0.82em;font-weight:600">Python 3.11+</span>
+  <span style="background:#22c55e1a;color:#22c55e;border:1px solid #22c55e40;border-radius:999px;padding:0.2em 0.75em;font-size:0.82em;font-weight:600">MIT License</span>
+  <span style="background:#8b5cf61a;color:#8b5cf6;border:1px solid #8b5cf640;border-radius:999px;padding:0.2em 0.75em;font-size:0.82em;font-weight:600">MCP Ready</span>
+</div>
 <hr style="margin:1.5rem 0;opacity:0.3">
 <h2>The problem with Markdown documentation</h2>
 <p>Markdown is everywhere — READMEs, wikis, design docs, postmortems. It's easy to write, but hard to read at scale. By the time a document has tables, code blocks, and a system diagram, it's a wall of symbols that no one wants to open.</p>
@@ -36,12 +38,17 @@
 <div style="background:#3b82f60d;border:1px solid #3b82f630;border-radius:8px;padding:1rem 1.25rem;margin:0.75rem 0;display:flex;gap:0.75rem;align-items:flex-start"><span style="font-size:1.3rem;line-height:1.4">💡</span><div><div style="font-weight:600;color:#3b82f6;margin-bottom:0.2rem">Same effort. Dramatically better output.</div><div style="font-size:0.95em">You write roughly the same amount. minidoc compiles it into something Markdown never could.</div></div></div>
 <hr style="margin:1.5rem 0;opacity:0.3">
 <h2>Live examples</h2>
-<section style="background:var(--pico-card-background-color,#fff);border-radius:8px;padding:1.5rem;margin:1rem 0;box-shadow:0 1px 6px rgba(0,0,0,0.08);"><h3>URL Shortener — System Design</h3><p>Senior-level distributed system design: 100M writes/day · 10B redirects/day · 99.99% availability. Architecture diagram, data model, scalability strategy, and design decisions — all in one page.</p>
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem"><div></div>
-<div></div>
-<div></div>
-<div></div></div>
-<div style="background:#eff6ff;border-left:4px solid #3b82f6;padding:0.75rem 1rem;border-radius:4px;margin:0.75rem 0">ℹ️ <a href="url_shortener.html">→ Open live example</a></div></section>
+<figure><table>
+<thead><tr><th>Example</th><th>Markdown</th><th>minidoc DSL</th><th>Rendered HTML</th></tr></thead>
+<tbody>
+<tr>
+  <td><strong>URL Shortener — System Design</strong><br><small style="color:#6b7280">Architecture · Data model · Scalability · Design decisions</small></td>
+  <td><a href="https://github.com/shalayiding/minidoc/blob/main/benchmark/url_shortener/url_shortener_system_design.md" target="_blank">View .md</a></td>
+  <td><a href="https://github.com/shalayiding/minidoc/blob/main/benchmark/url_shortener/url_shortener_system_design.minidoc" target="_blank">View .minidoc</a></td>
+  <td><a href="url_shortener.html" target="_blank">Open HTML →</a></td>
+</tr>
+</tbody>
+</table></figure>
 <hr style="margin:1.5rem 0;opacity:0.3">
 <h2>Quick start</h2>
 <div style="border:1px solid #30363d;border-radius:8px;overflow:hidden;margin:1rem 0"><div style="background:#161b22;border-bottom:1px solid #30363d;padding:0.35rem 1rem;font-size:0.8em;color:#8b949e;font-family:monospace">Install</div><pre style="margin:0;padding:0;overflow-x:auto;background:#0d1117"><code class="language-bash" style="border-radius:0;padding:1rem;display:block;background:#0d1117">pip install minidoc-dsl</code></pre></div>
