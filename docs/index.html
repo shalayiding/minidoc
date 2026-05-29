@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>minidoc — Examples</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+  <style>
+    body { max-width: 800px; margin: 0 auto; padding: 3rem 1.5rem; }
+    .card { border: 1px solid #e5e7eb; border-radius: 10px; padding: 1.5rem 2rem; margin: 1rem 0; display: flex; justify-content: space-between; align-items: center; text-decoration: none; color: inherit; transition: box-shadow 0.15s; }
+    .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); text-decoration: none; }
+    .card-meta { font-size: 0.85em; color: #6b7280; margin-top: 0.25rem; }
+    .tag { background: #eff6ff; color: #3b82f6; border-radius: 999px; padding: 0.2em 0.75em; font-size: 0.78em; font-weight: 600; }
+    .arrow { font-size: 1.3rem; color: #9ca3af; }
+  </style>
+</head>
+<body>
+  <hgroup>
+    <h1>minidoc</h1>
+    <p>Compact DSL → polished HTML. Browse live examples below.</p>
+  </hgroup>
+
+  <hr>
+
+  <a class="card" href="url_shortener.html">
+    <div>
+      <strong>URL Shortener — System Design</strong>
+      <div class="card-meta">Architecture diagram · Data model · Scalability · Design decisions</div>
+      <div style="margin-top:0.5rem"><span class="tag">benchmark</span></div>
+    </div>
+    <span class="arrow">→</span>
+  </a>
+
+  <hr>
+
+  <p style="font-size:0.85em;color:#6b7280">
+    Built with <a href="https://github.com/shalayiding/minidoc">minidoc</a> ·
+    Each page is a self-contained HTML file compiled from ~300 tokens of DSL.
+  </p>
+</body>
+</html>

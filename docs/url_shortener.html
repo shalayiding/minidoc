@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>URL Shortener — System Design</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script><script>document.addEventListener("DOMContentLoaded",()=>hljs.highlightAll())</script>
+  <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";mermaid.initialize({startOnLoad:true,theme:"default"});</script>
+  <style>
+    body { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem; }
+    details > summary { list-style: none; }
+    details > summary::-webkit-details-marker { display: none; }
+    details > summary::after { display: none; }
+    details > summary::marker { display: none; }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <h1>URL Shortener System Design</h1>
+<blockquote><p>Senior-level distributed system design: 100M writes/day · 10B redirects/day · 99.99% availability</p></blockquote>
+<div style="background:#eff6ff;border-left:4px solid #3b82f6;padding:0.75rem 1rem;border-radius:4px;margin:0.75rem 0">ℹ️ Scope: Public URL shortening service (think bit.ly / TinyURL) with analytics, custom aliases, and global low-latency redirect.</div>
+<div style="margin:1rem 0"><div style="display:flex;gap:0;border-bottom:2px solid #e5e7eb;margin-bottom:0"><button data-group="tabs_ab2e8f73" onclick="minidocTab('tabs_ab2e8f73',0)" style="border:none;cursor:pointer;padding:0.6rem 1.25rem;font-size:0.9em;font-weight:600;border-radius:6px 6px 0 0;background:var(--pico-primary,#6366f1);color:#fff;border-bottom:2px solid var(--pico-primary,#6366f1);">Architecture Diagram</button><button data-group="tabs_ab2e8f73" onclick="minidocTab('tabs_ab2e8f73',1)" style="border:none;cursor:pointer;padding:0.6rem 1.25rem;font-size:0.9em;font-weight:600;border-radius:6px 6px 0 0;background:transparent;color:#374151;border-bottom:2px solid transparent;">Requirements & Scale</button><button data-group="tabs_ab2e8f73" onclick="minidocTab('tabs_ab2e8f73',2)" style="border:none;cursor:pointer;padding:0.6rem 1.25rem;font-size:0.9em;font-weight:600;border-radius:6px 6px 0 0;background:transparent;color:#374151;border-bottom:2px solid transparent;">Read & Write Paths</button><button data-group="tabs_ab2e8f73" onclick="minidocTab('tabs_ab2e8f73',3)" style="border:none;cursor:pointer;padding:0.6rem 1.25rem;font-size:0.9em;font-weight:600;border-radius:6px 6px 0 0;background:transparent;color:#374151;border-bottom:2px solid transparent;">Data Model</button><button data-group="tabs_ab2e8f73" onclick="minidocTab('tabs_ab2e8f73',4)" style="border:none;cursor:pointer;padding:0.6rem 1.25rem;font-size:0.9em;font-weight:600;border-radius:6px 6px 0 0;background:transparent;color:#374151;border-bottom:2px solid transparent;">Scalability & Reliability</button><button data-group="tabs_ab2e8f73" onclick="minidocTab('tabs_ab2e8f73',5)" style="border:none;cursor:pointer;padding:0.6rem 1.25rem;font-size:0.9em;font-weight:600;border-radius:6px 6px 0 0;background:transparent;color:#374151;border-bottom:2px solid transparent;">Design Decisions</button></div><div id="tabs_ab2e8f73_0" style="display:block;padding:1rem 0"><h2>System Architecture Diagram</h2>
+<div class="mermaid" style="margin:1.5rem 0;text-align:center;background:var(--pico-card-background-color,#fafafa);border-radius:8px;padding:1.5rem;overflow-x:auto">
+flowchart TD
+subgraph Clients["👤 Clients"]
+Browser["🌐 Browser"]
+Mobile["📱 Mobile"]
+APIClient["⚙️ API Client"]
+end
+
+subgraph Edge["Edge Layer"]
+CDN["☁️ CloudFront / Fastly CDN\n85% redirect cache hit"]
+WAF["🛡️ API Gateway + WAF\nRate Limit · Auth · DDoS"]
+end
+
+subgraph AppServices["Application Services (Stateless, Auto-scaled)"]
+RS["⚡ Redirect Service\nGo · p99 < 10ms"]
+WS["✍️ Write Service\nPython · idempotent"]
+AnS["📊 Analytics Service\nPython · async consumer"]
+end
+
+subgraph IDGen["ID Generation"]
+SF["❄️ Snowflake Nodes\n4096 IDs / ms / node\nBase62 → 7-char code"]
+end
+
+subgraph CacheLayer["Cache Layer"]
+L1["🔵 L1 In-Process LRU\n~0.1ms · 256 MB per pod"]
+L2["🟢 L2 Redis Cluster\n~1ms · 64 GB · sharded"]
+end
+
+subgraph StorageLayer["Storage Layer"]
+Cass[("🗄️ Cassandra Cluster\nURL store · RF=3\nCL=LOCAL_QUORUM")]
+PG[("🐘 PostgreSQL\nUser accounts\nACID billing")]
+CH[("📈 ClickHouse\nClick events\n1B rows/day")]
+end
+
+subgraph AsyncPipeline["Async Pipeline"]
+Kafka["📨 Kafka\n64 partitions · 7d retention"]
+Flink["⚙️ Flink / Samza\nStream enrichment\nGeoIP · UA parse"]
+end
+
+subgraph MultiRegion["Multi-Region Active-Active"]
+R1["🇺🇸 US-East"]
+R2["🇪🇺 EU-West"]
+R3["🇸🇬 AP-Southeast"]
+end
+
+Browser -->|GET /:code| CDN
+Mobile -->|GET /:code| CDN
+APIClient -->|POST /shorten| WAF
+
+CDN -->|cache miss| WAF
+WAF -->|read| RS
+WAF -->|write| WS
+WAF -->|auth| PG
+
+RS --> L1
+L1 -->|L1 miss| L2
+L2 -->|L2 miss| Cass
+RS -->|fire & forget| Kafka
+
+WS --> SF
+SF -->|Snowflake ID| WS
+WS -->|write-through| Cass
+WS -->|warm cache| L2
+WS -->|user quota| PG
+
+Kafka --> Flink
+Flink --> CH
+Flink --> AnS
+
+Cass -.->|async replication| R1
+Cass -.->|async replication| R2
+Cass -.->|async replication| R3
+
+style Edge fill:#e0f2fe,stroke:#0284c7
+style AppServices fill:#f0fdf4,stroke:#16a34a
+style CacheLayer fill:#fef9c3,stroke:#ca8a04
+style StorageLayer fill:#fdf4ff,stroke:#a855f7
+style AsyncPipeline fill:#fff7ed,stroke:#ea580c
+style IDGen fill:#f0fdf4,stroke:#16a34a
+style MultiRegion fill:#f1f5f9,stroke:#64748b
+</div>
+<hr style="margin:1.5rem 0;opacity:0.3">
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem"><div><article style="border-left:4px solid #3b82f6;padding:1rem 1.25rem;margin:0.5rem 0;border-radius:6px"><div style="font-size:0.8em;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em">Cache Layers</div><div style="font-size:2rem;font-weight:700;color:#3b82f6;line-height:1.2">3-Tier</div></article></div>
+<div><article style="border-left:4px solid #22c55e;padding:1rem 1.25rem;margin:0.5rem 0;border-radius:6px"><div style="font-size:0.8em;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em">CDN Hit Rate</div><div style="font-size:2rem;font-weight:700;color:#22c55e;line-height:1.2">85%</div></article></div>
+<div><article style="border-left:4px solid #8b5cf6;padding:1rem 1.25rem;margin:0.5rem 0;border-radius:6px"><div style="font-size:0.8em;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em">Regions</div><div style="font-size:2rem;font-weight:700;color:#8b5cf6;line-height:1.2">3 Active</div></article></div>
+<div><article style="border-left:4px solid #22c55e;padding:1rem 1.25rem;margin:0.5rem 0;border-radius:6px"><div style="font-size:0.8em;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em">P99 Redirect</div><div style="font-size:2rem;font-weight:700;color:#22c55e;line-height:1.2">< 10ms</div></article></div></div></div><div id="tabs_ab2e8f73_1" style="display:none;padding:1rem 0"><h2>Functional Requirements</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem"><div><section style="background:var(--pico-card-background-color,#fff);border-radius:8px;padding:1.5rem;margin:1rem 0;box-shadow:0 1px 6px rgba(0,0,0,0.08);"><h3>Core Features</h3><ul style="padding-left:0"><li style="list-style:none;margin:0.3rem 0">✅ Shorten long URL → 7-char short code</li><li style="list-style:none;margin:0.3rem 0">✅ Redirect short URL to original (< 10ms p99)</li><li style="list-style:none;margin:0.3rem 0">✅ Custom aliases (e.g. short.ly/launch2026)</li><li style="list-style:none;margin:0.3rem 0">✅ Link expiration (TTL configurable)</li><li style="list-style:none;margin:0.3rem 0">✅ User accounts & link management dashboard</li><li style="list-style:none;margin:0.3rem 0">✅ Real-time click analytics (geo, device, referrer)</li></ul></section></div>
+<div><section style="background:var(--pico-card-background-color,#fff);border-radius:8px;padding:1.5rem;margin:1rem 0;box-shadow:0 1px 6px rgba(0,0,0,0.08);"><h3>Non-Functional Requirements</h3><ul style="padding-left:0"><li style="list-style:none;margin:0.3rem 0">✅ Availability: 99.99% (< 52 min downtime/year)</li><li style="list-style:none;margin:0.3rem 0">✅ Redirect latency: p50 < 5ms, p99 < 10ms</li><li style="list-style:none;margin:0.3rem 0">✅ Consistency: eventual OK for analytics, strong for redirects</li><li style="list-style:none;margin:0.3rem 0">✅ Idempotency: same long URL → same short code per user</li><li style="list-style:none;margin:0.3rem 0">✅ Security: rate limiting, phishing detection, link preview</li></ul></section></div></div>
+<h2>Capacity Estimation</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem"><div><article style="border-left:4px solid #3b82f6;padding:1rem 1.25rem;margin:0.5rem 0;border-radius:6px"><div style="font-size:0.8em;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em">URL Writes/day</div><div style="font-size:2rem;font-weight:700;color:#3b82f6;line-height:1.2">100M</div></article></div>
+<div><article style="border-left:4px solid #22c55e;padding:1rem 1.25rem;margin:0.5rem 0;border-radius:6px"><div style="font-size:0.8em;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em">Redirects/day</div><div style="font-size:2rem;font-weight:700;color:#22c55e;line-height:1.2">10B</div></article></div>
+<div><article style="border-left:4px solid #8b5cf6;padding:1rem 1.25rem;margin:0.5rem 0;border-radius:6px"><div style="font-size:0.8em;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em">Read:Write Ratio</div><div style="font-size:2rem;font-weight:700;color:#8b5cf6;line-height:1.2">100:1</div></article></div>
+<div><article style="border-left:4px solid #f59e0b;padding:1rem 1.25rem;margin:0.5rem 0;border-radius:6px"><div style="font-size:0.8em;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em">5-Year Storage</div><div style="font-size:2rem;font-weight:700;color:#f59e0b;line-height:1.2">~90 TB</div></article></div></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem"><div><section style="background:var(--pico-card-background-color,#fff);border-radius:8px;padding:1.5rem;margin:1rem 0;box-shadow:0 1px 6px rgba(0,0,0,0.08);"><h3>Write Path QPS</h3><article style="border-left:4px solid #3b82f6;padding:1rem 1.25rem;margin:0.5rem 0;border-radius:6px"><div style="font-size:0.8em;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em">Peak Writes</div><div style="font-size:2rem;font-weight:700;color:#3b82f6;line-height:1.2">1,160/s</div></article>
+<article style="border-left:4px solid #f59e0b;padding:1rem 1.25rem;margin:0.5rem 0;border-radius:6px"><div style="font-size:0.8em;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em">Burst (3x)</div><div style="font-size:2rem;font-weight:700;color:#f59e0b;line-height:1.2">3,500/s</div></article></section></div>
+<div><section style="background:var(--pico-card-background-color,#fff);border-radius:8px;padding:1.5rem;margin:1rem 0;box-shadow:0 1px 6px rgba(0,0,0,0.08);"><h3>Read Path QPS</h3><article style="border-left:4px solid #22c55e;padding:1rem 1.25rem;margin:0.5rem 0;border-radius:6px"><div style="font-size:0.8em;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em">Avg Redirects</div><div style="font-size:2rem;font-weight:700;color:#22c55e;line-height:1.2">115K/s</div></article>
+<article style="border-left:4px solid #ef4444;padding:1rem 1.25rem;margin:0.5rem 0;border-radius:6px"><div style="font-size:0.8em;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em">Peak (5x)</div><div style="font-size:2rem;font-weight:700;color:#ef4444;line-height:1.2">575K/s</div></article></section></div>
+<div><section style="background:var(--pico-card-background-color,#fff);border-radius:8px;padding:1.5rem;margin:1rem 0;box-shadow:0 1px 6px rgba(0,0,0,0.08);"><h3>Storage Math</h3><blockquote><p>100M × 365 × 5 = 182.5B rows</p></blockquote>
+<blockquote><p>~500 bytes/row → <strong>91 TB</strong></p></blockquote>
+<blockquote><p>Analytics events: +2× → ~180 TB total</p></blockquote></section></div></div>
+<div style="max-width:600px;margin:1.5rem auto"><canvas id="chart_9ca1421e"></canvas><script>new Chart(document.getElementById("chart_9ca1421e"),{type:"bar",data:{labels:["URL_Write", "Redirect", "Analytics", "Dashboard"],datasets:[{label:"QPS by Service (steady state)",data:[1160.0, 115000.0, 115000.0, 5000.0],backgroundColor:"#6366f1",borderColor:"#6366f1",tension:0.4}]},options:{responsive:true,plugins:{legend:{display:false},title:{display:true,text:"QPS by Service (steady state)"}}}})</script></div></div><div id="tabs_ab2e8f73_2" style="display:none;padding:1rem 0"><h2>Critical Paths</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem"><div><section style="background:var(--pico-card-background-color,#fff);border-radius:8px;padding:1.5rem;margin:1rem 0;box-shadow:0 1px 6px rgba(0,0,0,0.08);"><h3>Write Path — Create Short URL</h3><div style="margin:1rem 0;padding-left:1.5rem;border-left:2px solid #3b82f640"><div style="position:relative;margin-bottom:1.25rem;padding-left:0.25rem"><div style="position:absolute;left:-1.4rem;top:0.35rem;width:10px;height:10px;background:#3b82f6;border-radius:50%;box-shadow:0 0 0 3px #3b82f630"></div><div style="font-size:0.95em"><strong style="color:#3b82f6">Step 1</strong> — Client → POST /shorten — API Gateway validates JWT + rate limit</div></div><div style="position:relative;margin-bottom:1.25rem;padding-left:0.25rem"><div style="position:absolute;left:-1.4rem;top:0.35rem;width:10px;height:10px;background:#3b82f6;border-radius:50%;box-shadow:0 0 0 3px #3b82f630"></div><div style="font-size:0.95em"><strong style="color:#3b82f6">Step 2</strong> — URL Service — normalise URL, strip tracking params</div></div><div style="position:relative;margin-bottom:1.25rem;padding-left:0.25rem"><div style="position:absolute;left:-1.4rem;top:0.35rem;width:10px;height:10px;background:#3b82f6;border-radius:50%;box-shadow:0 0 0 3px #3b82f630"></div><div style="font-size:0.95em"><strong style="color:#3b82f6">Step 3</strong> — Dedup check — query Redis/DB: same user + long_url exists?</div></div><div style="position:relative;margin-bottom:1.25rem;padding-left:0.25rem"><div style="position:absolute;left:-1.4rem;top:0.35rem;width:10px;height:10px;background:#3b82f6;border-radius:50%;box-shadow:0 0 0 3px #3b82f630"></div><div style="font-size:0.95em"><strong style="color:#3b82f6">Step 4</strong> — ID Generation — Snowflake node generates 64-bit ID → Base62 encode → 7-char code</div></div><div style="position:relative;margin-bottom:1.25rem;padding-left:0.25rem"><div style="position:absolute;left:-1.4rem;top:0.35rem;width:10px;height:10px;background:#3b82f6;border-radius:50%;box-shadow:0 0 0 3px #3b82f630"></div><div style="font-size:0.95em"><strong style="color:#3b82f6">Step 5</strong> — Collision check — GET Cassandra by short_code; retry with +1 sequence if collision</div></div><div style="position:relative;margin-bottom:1.25rem;padding-left:0.25rem"><div style="position:absolute;left:-1.4rem;top:0.35rem;width:10px;height:10px;background:#3b82f6;border-radius:50%;box-shadow:0 0 0 3px #3b82f630"></div><div style="font-size:0.95em"><strong style="color:#3b82f6">Step 6</strong> — Dual write — write to Cassandra (CL=QUORUM), write-through to Redis</div></div><div style="position:relative;margin-bottom:1.25rem;padding-left:0.25rem"><div style="position:absolute;left:-1.4rem;top:0.35rem;width:10px;height:10px;background:#3b82f6;border-radius:50%;box-shadow:0 0 0 3px #3b82f630"></div><div style="font-size:0.95em"><strong style="color:#3b82f6">Step 7</strong> — Event publish — Kafka topic url-created (async, non-blocking)</div></div><div style="position:relative;margin-bottom:1.25rem;padding-left:0.25rem"><div style="position:absolute;left:-1.4rem;top:0.35rem;width:10px;height:10px;background:#3b82f6;border-radius:50%;box-shadow:0 0 0 3px #3b82f630"></div><div style="font-size:0.95em"><strong style="color:#3b82f6">Step 8</strong> — Response — return {short_url, expires_at, analytics_url} in < 50ms</div></div></div></section></div>
+<div><section style="background:var(--pico-card-background-color,#fff);border-radius:8px;padding:1.5rem;margin:1rem 0;box-shadow:0 1px 6px rgba(0,0,0,0.08);"><h3>Read Path — Redirect</h3><div style="margin:1rem 0;padding-left:1.5rem;border-left:2px solid #22c55e40"><div style="position:relative;margin-bottom:1.25rem;padding-left:0.25rem"><div style="position:absolute;left:-1.4rem;top:0.35rem;width:10px;height:10px;background:#22c55e;border-radius:50%;box-shadow:0 0 0 3px #22c55e30"></div><div style="font-size:0.95em"><strong style="color:#22c55e">Step 1</strong> — Client → GET /abc1234 — CDN checks edge cache (85% hit rate)</div></div><div style="position:relative;margin-bottom:1.25rem;padding-left:0.25rem"><div style="position:absolute;left:-1.4rem;top:0.35rem;width:10px;height:10px;background:#22c55e;border-radius:50%;box-shadow:0 0 0 3px #22c55e30"></div><div style="font-size:0.95em"><strong style="color:#22c55e">Step 2</strong> — CDN miss → API Gateway → Redirect Service pod</div></div><div style="position:relative;margin-bottom:1.25rem;padding-left:0.25rem"><div style="position:absolute;left:-1.4rem;top:0.35rem;width:10px;height:10px;background:#22c55e;border-radius:50%;box-shadow:0 0 0 3px #22c55e30"></div><div style="font-size:0.95em"><strong style="color:#22c55e">Step 3</strong> — L1 cache — in-process LRU lookup (< 0.1ms, ~60% hit)</div></div><div style="position:relative;margin-bottom:1.25rem;padding-left:0.25rem"><div style="position:absolute;left:-1.4rem;top:0.35rem;width:10px;height:10px;background:#22c55e;border-radius:50%;box-shadow:0 0 0 3px #22c55e30"></div><div style="font-size:0.95em"><strong style="color:#22c55e">Step 4</strong> — L2 cache — Redis Cluster lookup (< 1ms, ~35% hit of remainder)</div></div><div style="position:relative;margin-bottom:1.25rem;padding-left:0.25rem"><div style="position:absolute;left:-1.4rem;top:0.35rem;width:10px;height:10px;background:#22c55e;border-radius:50%;box-shadow:0 0 0 3px #22c55e30"></div><div style="font-size:0.95em"><strong style="color:#22c55e">Step 5</strong> — DB read — Cassandra LOCAL_QUORUM, nearest replica (< 5ms)</div></div><div style="position:relative;margin-bottom:1.25rem;padding-left:0.25rem"><div style="position:absolute;left:-1.4rem;top:0.35rem;width:10px;height:10px;background:#22c55e;border-radius:50%;box-shadow:0 0 0 3px #22c55e30"></div><div style="font-size:0.95em"><strong style="color:#22c55e">Step 6</strong> — Cache warm — async write-back to Redis + CDN surrogate-key tag</div></div><div style="position:relative;margin-bottom:1.25rem;padding-left:0.25rem"><div style="position:absolute;left:-1.4rem;top:0.35rem;width:10px;height:10px;background:#22c55e;border-radius:50%;box-shadow:0 0 0 3px #22c55e30"></div><div style="font-size:0.95em"><strong style="color:#22c55e">Step 7</strong> — Expiry check — is expires_at in past? → 410 Gone</div></div><div style="position:relative;margin-bottom:1.25rem;padding-left:0.25rem"><div style="position:absolute;left:-1.4rem;top:0.35rem;width:10px;height:10px;background:#22c55e;border-radius:50%;box-shadow:0 0 0 3px #22c55e30"></div><div style="font-size:0.95em"><strong style="color:#22c55e">Step 8</strong> — Click event — fire-and-forget publish to Kafka (async goroutine)</div></div><div style="position:relative;margin-bottom:1.25rem;padding-left:0.25rem"><div style="position:absolute;left:-1.4rem;top:0.35rem;width:10px;height:10px;background:#22c55e;border-radius:50%;box-shadow:0 0 0 3px #22c55e30"></div><div style="font-size:0.95em"><strong style="color:#22c55e">Step 9</strong> — 302 redirect — Location: {long_url}, total p99 < 10ms</div></div></div></section></div></div>
+<div style="border:1px solid #30363d;border-radius:8px;overflow:hidden;margin:1rem 0"><div style="background:#161b22;border-bottom:1px solid #30363d;padding:0.35rem 1rem;font-size:0.8em;color:#8b949e;font-family:monospace">redirect_handler.go</div><pre style="margin:0;padding:0;overflow-x:auto;background:#0d1117"><code class="language-go" style="border-radius:0;padding:1rem;display:block;background:#0d1117">func (h *Handler) Redirect(w http.ResponseWriter, r *http.Request) {
+code := chi.URLParam(r, &quot;code&quot;)
+
+// L1: in-process LRU (~0.1ms)
+if url, ok := h.l1.Get(code); ok {
+h.publishClick(code, r) // fire-and-forget
+http.Redirect(w, r, url, http.StatusFound)
+return
+}
+
+// L2: Redis cluster (~1ms)
+url, err := h.redis.Get(r.Context(), &quot;url:&quot;+code).Result()
+if err == nil {
+h.l1.Set(code, url)
+h.publishClick(code, r)
+http.Redirect(w, r, url, http.StatusFound)
+return
+}
+
+// L3: Cassandra (LOCAL_QUORUM)
+row, err := h.db.GetURL(r.Context(), code)
+if err != nil || !row.IsActive {
+http.NotFound(w, r)
+return
+}
+if row.ExpiresAt != nil &amp;&amp; row.ExpiresAt.Before(time.Now()) {
+http.Error(w, &quot;Gone&quot;, http.StatusGone)
+return
+}
+
+// warm both caches async
+go h.redis.Set(context.Background(), &quot;url:&quot;+code, row.LongURL, 24*time.Hour)
+h.l1.Set(code, row.LongURL)
+
+h.publishClick(code, r)
+http.Redirect(w, r, row.LongURL, http.StatusFound)
+}</code></pre></div>
+<div style="max-width:600px;margin:1.5rem auto"><canvas id="chart_331e9e48"></canvas><script>new Chart(document.getElementById("chart_331e9e48"),{type:"pie",data:{labels:["CDN_Edge", "Redis_L1", "Redis_L2", "Cassandra"],datasets:[{data:[85.0, 9.0, 5.0, 1.0],backgroundColor:["#6366f1", "#22c55e", "#f59e0b", "#ef4444"]}]},options:{responsive:true,plugins:{legend:{display:true},title:{display:true,text:"Redirect Request Served By"}}}})</script></div>
+<div style="background:#3b82f60d;border:1px solid #3b82f630;border-radius:8px;padding:1rem 1.25rem;margin:0.75rem 0;display:flex;gap:0.75rem;align-items:flex-start"><span style="font-size:1.3rem;line-height:1.4">💡</span><div><div style="font-weight:600;color:#3b82f6;margin-bottom:0.2rem">302 vs 301 Trade-off</div><div style="font-size:0.95em">Use 302 (Found) instead of 301 (Moved Permanently). 301 is cached by browsers indefinitely — you lose analytics and can't update the target. 302 always hits your servers, enabling click tracking and link editing. CDN handles caching at scale.</div></div></div></div><div id="tabs_ab2e8f73_3" style="display:none;padding:1rem 0"><h2>Data Model Design</h2>
+<section style="background:var(--pico-card-background-color,#fff);border-radius:8px;padding:1.5rem;margin:1rem 0;box-shadow:0 1px 6px rgba(0,0,0,0.08);"><h3>URLs Table (Cassandra)</h3><figure><table><thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead><tbody><tr><td>short_code</td><td>text (PK)</td><td>Base62, 7 chars, partition key</td></tr><tr><td>long_url</td><td>text</td><td>Original URL, max 2048 chars</td></tr><tr><td>user_id</td><td>uuid</td><td>Owner; null for anonymous</td></tr><tr><td>created_at</td><td>timestamp</td><td>Snowflake-derived</td></tr><tr><td>expires_at</td><td>timestamp</td><td>Null = never</td></tr><tr><td>is_custom</td><td>boolean</td><td>Custom alias flag</td></tr><tr><td>click_count</td><td>counter</td><td>Approximate; Cassandra counter column</td></tr><tr><td>is_active</td><td>boolean</td><td>Soft delete / deactivate</td></tr></tbody></table></figure>
+<div style="border:1px solid #30363d;border-radius:8px;overflow:hidden;margin:1rem 0"><div style="background:#161b22;border-bottom:1px solid #30363d;padding:0.35rem 1rem;font-size:0.8em;color:#8b949e;font-family:monospace">urls.cql</div><pre style="margin:0;padding:0;overflow-x:auto;background:#0d1117"><code class="language-sql" style="border-radius:0;padding:1rem;display:block;background:#0d1117">CREATE TABLE urls (
+short_code  text        PRIMARY KEY,
+long_url    text        NOT NULL,
+user_id     uuid,
+created_at  timestamp   NOT NULL,
+expires_at  timestamp,
+is_custom   boolean     DEFAULT false,
+is_active   boolean     DEFAULT true
+) WITH default_time_to_live = 0
+AND compaction = {&#x27;class&#x27;: &#x27;LeveledCompactionStrategy&#x27;}
+AND gc_grace_seconds = 86400;
+
+-- counter table (separate in Cassandra)
+CREATE TABLE url_clicks (
+short_code  text    PRIMARY KEY,
+click_count counter
+);</code></pre></div></section>
+<section style="background:var(--pico-card-background-color,#fff);border-radius:8px;padding:1.5rem;margin:1rem 0;box-shadow:0 1px 6px rgba(0,0,0,0.08);"><h3>Users Table (PostgreSQL)</h3><figure><table><thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead><tbody><tr><td>user_id</td><td>uuid (PK)</td><td>—</td></tr><tr><td>email</td><td>text UNIQUE</td><td>—</td></tr><tr><td>plan_tier</td><td>enum</td><td>free / pro / enterprise</td></tr><tr><td>rate_limit</td><td>int</td><td>Max creates/day</td></tr><tr><td>created_at</td><td>timestamp</td><td>—</td></tr></tbody></table></figure>
+<div style="border:1px solid #30363d;border-radius:8px;overflow:hidden;margin:1rem 0"><div style="background:#161b22;border-bottom:1px solid #30363d;padding:0.35rem 1rem;font-size:0.8em;color:#8b949e;font-family:monospace">users.sql</div><pre style="margin:0;padding:0;overflow-x:auto;background:#0d1117"><code class="language-sql" style="border-radius:0;padding:1rem;display:block;background:#0d1117">CREATE TYPE plan_tier AS ENUM (&#x27;free&#x27;, &#x27;pro&#x27;, &#x27;enterprise&#x27;);
+
+CREATE TABLE users (
+user_id    uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+email      text        UNIQUE NOT NULL,
+plan_tier  plan_tier   NOT NULL DEFAULT &#x27;free&#x27;,
+rate_limit int         NOT NULL DEFAULT 50,
+created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_users_email ON users(email);</code></pre></div>
+<div style="background:#3b82f60d;border:1px solid #3b82f630;border-radius:8px;padding:1rem 1.25rem;margin:0.75rem 0;display:flex;gap:0.75rem;align-items:flex-start"><span style="font-size:1.3rem;line-height:1.4">💡</span><div><div style="font-weight:600;color:#3b82f6;margin-bottom:0.2rem">Why two databases?</div><div style="font-size:0.95em">URLs table is read-heavy, append-only, and benefits from Cassandra's partition-key lookup. Users table is relational with joins and ACID needs — PostgreSQL is the right tool.</div></div></div></section>
+<section style="background:var(--pico-card-background-color,#fff);border-radius:8px;padding:1.5rem;margin:1rem 0;box-shadow:0 1px 6px rgba(0,0,0,0.08);"><h3>Click Events (ClickHouse)</h3><figure><table><thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead><tbody><tr><td>short_code</td><td>LowCardinality(String)</td><td>Join key</td></tr><tr><td>clicked_at</td><td>DateTime64</td><td>Millisecond precision</td></tr><tr><td>country</td><td>LowCardinality(String)</td><td>MaxMind GeoIP</td></tr><tr><td>city</td><td>String</td><td>—</td></tr><tr><td>device_type</td><td>LowCardinality(String)</td><td>mobile / desktop / bot</td></tr><tr><td>referrer_domain</td><td>String</td><td>Stripped to domain only</td></tr><tr><td>ip_hash</td><td>UInt64</td><td>SHA-256 truncated, no PII</td></tr></tbody></table></figure>
+<div style="border:1px solid #30363d;border-radius:8px;overflow:hidden;margin:1rem 0"><div style="background:#161b22;border-bottom:1px solid #30363d;padding:0.35rem 1rem;font-size:0.8em;color:#8b949e;font-family:monospace">click_events.sql (ClickHouse)</div><pre style="margin:0;padding:0;overflow-x:auto;background:#0d1117"><code class="language-sql" style="border-radius:0;padding:1rem;display:block;background:#0d1117">CREATE TABLE click_events (
+short_code      LowCardinality(String),
+clicked_at      DateTime64(3),
+country         LowCardinality(String),
+city            String,
+device_type     LowCardinality(String),
+referrer_domain String,
+ip_hash         UInt64
+) ENGINE = MergeTree()
+PARTITION BY toYYYYMM(clicked_at)
+ORDER BY (short_code, clicked_at)
+TTL clicked_at + INTERVAL 2 YEAR;</code></pre></div>
+<div style="background:#f59e0b0d;border:1px solid #f59e0b30;border-radius:8px;padding:1rem 1.25rem;margin:0.75rem 0;display:flex;gap:0.75rem;align-items:flex-start"><span style="font-size:1.3rem;line-height:1.4">⚠️</span><div><div style="font-weight:600;color:#f59e0b;margin-bottom:0.2rem">Privacy</div><div style="font-size:0.95em">Raw IP is never stored. ip_hash uses a rotating daily salt — re-identification across days is impossible. GDPR-compliant by design.</div></div></div></section>
+<section style="background:var(--pico-card-background-color,#fff);border-radius:8px;padding:1.5rem;margin:1rem 0;box-shadow:0 1px 6px rgba(0,0,0,0.08);"><h3>Cache Key Design</h3><figure><table><thead><tr><th>Key Pattern</th><th>Value</th><th>TTL</th></tr></thead><tbody><tr><td>url:{short_code}</td><td>long_url string</td><td>24h (sliding)</td></tr><tr><td>user:{user_id}:links</td><td>paginated link list JSON</td><td>5 min</td></tr><tr><td>analytics:{short_code}:24h</td><td>aggregated click stats</td><td>1h</td></tr><tr><td>ratelimit:{ip}:{minute}</td><td>request count</td><td>60s</td></tr></tbody></table></figure></section></div><div id="tabs_ab2e8f73_4" style="display:none;padding:1rem 0"><h2>Scalability Strategy</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem"><div><section style="background:var(--pico-card-background-color,#fff);border-radius:8px;padding:1.5rem;margin:1rem 0;box-shadow:0 1px 6px rgba(0,0,0,0.08);"><h3>Horizontal Scaling</h3><ul style="padding-left:0"><li style="list-style:none;margin:0.3rem 0">✅ Redirect Service: stateless, auto-scale 50→500 pods on CPU/QPS</li><li style="list-style:none;margin:0.3rem 0">✅ URL Write Service: stateless, scale independently</li><li style="list-style:none;margin:0.3rem 0">✅ Cassandra: add nodes, rebalances automatically (virtual nodes)</li><li style="list-style:none;margin:0.3rem 0">✅ Redis: cluster sharding by short_code hash slot</li><li style="list-style:none;margin:0.3rem 0">✅ Kafka: add partitions + consumer group members</li></ul></section></div>
+<div><section style="background:var(--pico-card-background-color,#fff);border-radius:8px;padding:1.5rem;margin:1rem 0;box-shadow:0 1px 6px rgba(0,0,0,0.08);"><h3>Multi-Region Active-Active</h3><ul style="padding-left:0"><li style="list-style:none;margin:0.3rem 0">✅ 3 regions: US-East, EU-West, AP-Southeast</li><li style="list-style:none;margin:0.3rem 0">✅ Cassandra cross-region replication (async, RF=3 per region)</li><li style="list-style:none;margin:0.3rem 0">✅ Redirect service reads LOCAL_QUORUM — no cross-region latency</li><li style="list-style:none;margin:0.3rem 0">✅ Writes: route to nearest region, async replicate</li><li style="list-style:none;margin:0.3rem 0">✅ Global Load Balancer (Anycast) routes by latency</li></ul></section></div></div>
+<h2>Reliability Design</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem"><div><section style="background:var(--pico-card-background-color,#fff);border-radius:8px;padding:1.5rem;margin:1rem 0;box-shadow:0 1px 6px rgba(0,0,0,0.08);"><h3>Failure Modes & Mitigations</h3><figure><table><thead><tr><th>Failure</th><th>Detection</th><th>Mitigation</th></tr></thead><tbody><tr><td>Redis down</td><td>Health check</td><td>Fallback to Cassandra; degrade gracefully</td></tr><tr><td>Cassandra node down</td><td>Gossip protocol</td><td>RF=3; reads still succeed with 2 nodes</td></tr><tr><td>Kafka lag spike</td><td>Consumer lag metric</td><td>Scale consumers; shed non-critical events</td></tr><tr><td>ID generator down</td><td>Heartbeat</td><td>Multiple Snowflake nodes; no SPOF</td></tr><tr><td>CDN outage</td><td>Synthetic monitor</td><td>Origin handles full load; auto-scaled</td></tr></tbody></table></figure></section></div>
+<div><section style="background:var(--pico-card-background-color,#fff);border-radius:8px;padding:1.5rem;margin:1rem 0;box-shadow:0 1px 6px rgba(0,0,0,0.08);"><h3>SLO Targets</h3><article style="border-left:4px solid #22c55e;padding:1rem 1.25rem;margin:0.5rem 0;border-radius:6px"><div style="font-size:0.8em;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em">Redirect Availability</div><div style="font-size:2rem;font-weight:700;color:#22c55e;line-height:1.2">99.99%<span style="color:#22c55e;font-size:0.85em;margin-left:0.5rem">▲ +0%</span></div><div style="font-size:0.8em;color:#6b7280;margin-top:0.25rem">Target: <strong>99.99%</strong></div></article>
+<article style="border-left:4px solid #22c55e;padding:1rem 1.25rem;margin:0.5rem 0;border-radius:6px"><div style="font-size:0.8em;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em">P99 Redirect Latency</div><div style="font-size:2rem;font-weight:700;color:#22c55e;line-height:1.2">8ms<span style="color:#ef4444;font-size:0.85em;margin-left:0.5rem">▼ -20%</span></div><div style="font-size:0.8em;color:#6b7280;margin-top:0.25rem">Target: <strong>10ms</strong></div></article>
+<article style="border-left:4px solid #22c55e;padding:1rem 1.25rem;margin:0.5rem 0;border-radius:6px"><div style="font-size:0.8em;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em">Write Availability</div><div style="font-size:2rem;font-weight:700;color:#22c55e;line-height:1.2">99.95%<span style="color:#22c55e;font-size:0.85em;margin-left:0.5rem">▲ +0.05%</span></div><div style="font-size:0.8em;color:#6b7280;margin-top:0.25rem">Target: <strong>99.9%</strong></div></article>
+<article style="border-left:4px solid #22c55e;padding:1rem 1.25rem;margin:0.5rem 0;border-radius:6px"><div style="font-size:0.8em;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em">Analytics Freshness</div><div style="font-size:2rem;font-weight:700;color:#22c55e;line-height:1.2">30s<span style="color:#ef4444;font-size:0.85em;margin-left:0.5rem">▼ -50%</span></div><div style="font-size:0.8em;color:#6b7280;margin-top:0.25rem">Target: <strong>60s</strong></div></article></section></div></div>
+<div style="max-width:600px;margin:1.5rem auto"><canvas id="chart_2fefa429"></canvas><script>new Chart(document.getElementById("chart_2fefa429"),{type:"line",data:{labels:["CDN", "Redis_L1", "Redis_L2", "Cassandra"],datasets:[{label:"Cache Hit Rate vs Latency (p99 ms)",data:[2.0, 3.0, 5.0, 9.0],backgroundColor:"#6366f1",borderColor:"#6366f1",tension:0.4}]},options:{responsive:true,plugins:{legend:{display:false},title:{display:true,text:"Cache Hit Rate vs Latency (p99 ms)"}}}})</script></div></div><div id="tabs_ab2e8f73_5" style="display:none;padding:1rem 0"><h2>Key Design Decisions & Trade-offs</h2>
+<section style="background:var(--pico-card-background-color,#fff);border-radius:8px;padding:1.5rem;margin:1rem 0;box-shadow:0 1px 6px rgba(0,0,0,0.08);"><h3>Decision 1: Short Code Generation — Snowflake + Base62</h3><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem"><div><span style="background:#22c55e1a;color:#22c55e;border:1px solid #22c55e40;border-radius:999px;padding:0.2em 0.75em;font-size:0.82em;font-weight:600">Chosen: Snowflake + Base62</span>
+<blockquote><p>64-bit Snowflake ID → Base62 encode → 7-char code. Monotonically increasing = cache-friendly. No central coordination. 4096 unique codes/ms/node.</p></blockquote></div>
+<div><span style="background:#ef44441a;color:#ef4444;border:1px solid #ef444440;border-radius:999px;padding:0.2em 0.75em;font-size:0.82em;font-weight:600">Rejected: Random + Collision Check</span>
+<blockquote><p>Hash(long_url) → truncate → check DB. Collision probability grows with scale. Requires read-before-write on every creation. DB hot-spot under high write load.</p></blockquote></div></div>
+<div style="border:1px solid #30363d;border-radius:8px;overflow:hidden;margin:1rem 0"><div style="background:#161b22;border-bottom:1px solid #30363d;padding:0.35rem 1rem;font-size:0.8em;color:#8b949e;font-family:monospace">base62.go</div><pre style="margin:0;padding:0;overflow-x:auto;background:#0d1117"><code class="language-go" style="border-radius:0;padding:1rem;display:block;background:#0d1117">const alphabet = &quot;0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz&quot;
+
+// Encode converts a Snowflake uint64 to a 7-char Base62 string.
+// 62^7 = 3.5 trillion — enough for decades of 100M writes/day.
+func Encode(n uint64) string {
+buf := make([]byte, 7)
+for i := 6; i &gt;= 0; i-- {
+buf[i] = alphabet[n%62]
+n /= 62
+}
+return string(buf)
+}</code></pre></div></section>
+<section style="background:var(--pico-card-background-color,#fff);border-radius:8px;padding:1.5rem;margin:1rem 0;box-shadow:0 1px 6px rgba(0,0,0,0.08);"><h3>Decision 2: Storage — Cassandra for URLs, PostgreSQL for Users</h3><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem"><div><span style="background:#22c55e1a;color:#22c55e;border:1px solid #22c55e40;border-radius:999px;padding:0.2em 0.75em;font-size:0.82em;font-weight:600">Chosen: Cassandra</span>
+<blockquote><p>Partition key = short_code → single-row lookup. Linear write scale. Multi-DC replication native. Handles 100K+ reads/sec without sharding logic in app layer.</p></blockquote></div>
+<div><span style="background:#ef44441a;color:#ef4444;border:1px solid #ef444440;border-radius:999px;padding:0.2em 0.75em;font-size:0.82em;font-weight:600">Rejected: PostgreSQL as primary</span>
+<blockquote><p>Single master write bottleneck. Requires manual sharding at 10B+ rows. Read replicas add lag. Fine for user metadata (low volume), wrong for URL lookups (high volume).</p></blockquote></div></div></section>
+<section style="background:var(--pico-card-background-color,#fff);border-radius:8px;padding:1.5rem;margin:1rem 0;box-shadow:0 1px 6px rgba(0,0,0,0.08);"><h3>Decision 3: 302 over 301 Redirect</h3><div style="background:#3b82f60d;border:1px solid #3b82f630;border-radius:8px;padding:1rem 1.25rem;margin:0.75rem 0;display:flex;gap:0.75rem;align-items:flex-start"><span style="font-size:1.3rem;line-height:1.4">💡</span><div><div style="font-weight:600;color:#3b82f6;margin-bottom:0.2rem">302 over 301</div><div style="font-size:0.95em">301 (Permanent Redirect) is cached by browsers indefinitely — once a browser caches it, you can never change the destination or track clicks from that browser. 302 (Found / Temporary) always re-queries your server, enabling analytics, link editing, and abuse deactivation. CDN absorbs the load.</div></div></div></section>
+<section style="background:var(--pico-card-background-color,#fff);border-radius:8px;padding:1.5rem;margin:1rem 0;box-shadow:0 1px 6px rgba(0,0,0,0.08);"><h3>Decision 4: Async Analytics via Kafka</h3><div style="background:#3b82f60d;border:1px solid #3b82f630;border-radius:8px;padding:1rem 1.25rem;margin:0.75rem 0;display:flex;gap:0.75rem;align-items:flex-start"><span style="font-size:1.3rem;line-height:1.4">💡</span><div><div style="font-weight:600;color:#3b82f6;margin-bottom:0.2rem">Async via Kafka</div><div style="font-size:0.95em">Click analytics must never block the redirect. A synchronous write to ClickHouse on the hot path adds 10-50ms and creates a cascade failure point. Kafka decouples the click event: redirect returns in < 5ms, analytics processes asynchronously. Acceptable to lose < 0.1% of events if Kafka is unavailable.</div></div></div></section>
+<section style="background:var(--pico-card-background-color,#fff);border-radius:8px;padding:1.5rem;margin:1rem 0;box-shadow:0 1px 6px rgba(0,0,0,0.08);"><h3>Tech Stack Summary</h3><figure><table><thead><tr><th>Layer</th><th>Technology</th><th>Why</th></tr></thead><tbody><tr><td>Edge Cache</td><td>CloudFront/Fastly</td><td>Global PoPs reduce origin load 85%</td></tr><tr><td>API Gateway</td><td>Kong / AWS API GW</td><td>Rate limiting + auth + routing</td></tr><tr><td>App Services</td><td>Go (Redirect) + Python (Write)</td><td>Go for latency-critical; Python for ML/analytics</td></tr><tr><td>Primary DB</td><td>Cassandra 4.x</td><td>Partition-key O(1) lookup at scale</td></tr><tr><td>Cache</td><td>Redis 7 Cluster</td><td>Sub-ms latency; LRU eviction</td></tr><tr><td>Analytics DB</td><td>ClickHouse</td><td>Columnar; 1B+ rows/day ingest</td></tr><tr><td>Message Bus</td><td>Kafka (MSK)</td><td>Decouples hot redirect path</td></tr><tr><td>ID Gen</td><td>Snowflake (in-house)</td><td>No SPOF; 4096 IDs/ms/node</td></tr><tr><td>Monitoring</td><td>Prometheus + Grafana</td><td>RED metrics per service</td></tr></tbody></table></figure></section></div></div><script>function minidocTab(g,idx){document.querySelectorAll("[data-group='"+g+"']").forEach(function(b,i){b.style.background=i===idx?"var(--pico-primary,#6366f1)":"transparent";b.style.color=i===idx?"#fff":"#374151";b.style.borderBottom=i===idx?"2px solid var(--pico-primary,#6366f1)":"2px solid transparent";});var p=document.getElementById(g+"_0");if(p){var par=p.parentNode;par.querySelectorAll("[id^='"+g+"_']").forEach(function(el,i){el.style.display=i===idx?"block":"none";});}}</script>
+  </main>
+</body>
+</html>
