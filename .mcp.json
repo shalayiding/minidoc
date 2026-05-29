@@ -3,7 +3,7 @@
     "minidoc": {
       "type": "stdio",
       "command": "uvx",
-      "args": ["--from", "git+https://github.com/shalayiding/minidoc", "minidoc-mcp"]
+      "args": ["minidoc-mcp"]
     }
   }
 }
