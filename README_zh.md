@@ -273,20 +273,9 @@ flowchart TD
 
 ## 示例文档
 
-```bash
-# 编译任意示例
-minidoc examples/netflix_architecture.minidoc -o result/out.html
-```
-
-| 文件 | 说明 |
-|------|------|
-| `netflix_architecture.minidoc` | 系统架构图，包含 Mermaid 流程图和分层标签页 |
-| `q3_report.minidoc` | 面向管理层的业务季报，含图表和 KPI |
-| `sales_pipeline.minidoc` | CRM 风格的销售漏斗看板 |
-| `incident_postmortem.minidoc` | 工程故障复盘模板 |
-| `ml_experiment.minidoc` | 机器学习实验追踪报告 |
-| `board_report_q3.minidoc` | 投资人级别的董事会汇报 |
-| `url_shortener_system_design.minidoc` | 系统设计文档 |
+| 示例 | Markdown 源文件 | minidoc DSL | 渲染 HTML |
+|------|----------------|-------------|-----------|
+| **URL 短链系统设计**<br>架构图 · 数据模型 · 可扩展性 · 设计决策 | [查看 .md](benchmark/url_shortener/url_shortener_system_design.md) | [查看 .minidoc](benchmark/url_shortener/url_shortener_system_design.minidoc) | [打开 HTML →](https://shalayiding.github.io/minidoc/url_shortener.html) |
 
 ---
 

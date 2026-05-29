@@ -273,20 +273,9 @@ content here
 
 ## Example documents
 
-```bash
-# Compile any example
-minidoc examples/netflix_architecture.minidoc -o result/out.html
-```
-
-| File | Description |
-|------|-------------|
-| `netflix_architecture.minidoc` | System architecture with Mermaid diagram, layered tabs |
-| `q3_report.minidoc` | Executive business report with charts and KPIs |
-| `sales_pipeline.minidoc` | CRM-style pipeline dashboard |
-| `incident_postmortem.minidoc` | Engineering postmortem template |
-| `ml_experiment.minidoc` | ML experiment tracking |
-| `board_report_q3.minidoc` | Investor-ready board deck |
-| `url_shortener_system_design.minidoc` | System design document |
+| Example | Markdown | minidoc DSL | Rendered HTML |
+|---------|----------|-------------|---------------|
+| **URL Shortener — System Design**<br>Architecture · Data model · Scalability · Design decisions | [View .md](benchmark/url_shortener/url_shortener_system_design.md) | [View .minidoc](benchmark/url_shortener/url_shortener_system_design.minidoc) | [Open HTML →](https://shalayiding.github.io/minidoc/url_shortener.html) |
 
 ---
 
