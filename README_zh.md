@@ -18,6 +18,7 @@ LLM 每天都在生成报告、看板和设计文档——但 Markdown 的表达
 | Q3 业务季报 | 管理层 | [.md](showcase/q3_business_report.md) `868 tokens` | [.minidoc](showcase/q3_business_report.minidoc) `1,060 tokens` | [→ 打开](https://shalayiding.github.io/minidoc/q3_business_report.html) `5,526 tokens` |
 | 故障复盘 | DevOps | [.md](showcase/incident_postmortem.md) `958 tokens` | [.minidoc](showcase/incident_postmortem.minidoc) `1,065 tokens` | [→ 打开](https://shalayiding.github.io/minidoc/incident_postmortem.html) `3,553 tokens` |
 | 销售漏斗看板 | 销售团队 | [.md](showcase/sales_pipeline.md) `891 tokens` | [.minidoc](showcase/sales_pipeline.minidoc) `1,182 tokens` | [→ 打开](https://shalayiding.github.io/minidoc/sales_pipeline.html) `4,596 tokens` |
+| 电商实时数据报告平台 | 数据工程 | [.md](showcase/ecommerce-realtime-reporting.md) `3,697 tokens` | [.minidoc](showcase/ecommerce-realtime-reporting.minidoc) `4,360 tokens` | [→ 打开](https://shalayiding.github.io/minidoc/ecommerce-realtime-reporting.html) `13,012 tokens` |
 | ML 实验追踪 | 数据科学 | [.md](showcase/ml_experiment.md) `1,158 tokens` | [.minidoc](showcase/ml_experiment.minidoc) `1,456 tokens` | [→ 打开](https://shalayiding.github.io/minidoc/ml_experiment.html) `5,187 tokens` |
 
 </div>

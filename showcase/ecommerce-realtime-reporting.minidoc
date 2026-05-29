@@ -1,0 +1,413 @@
+@doc title="Real-Time Data Reporting Platform — E-commerce Recommendation System" theme=light
+
+# Real-Time Data Reporting Platform
+## E-commerce Recommendation System
+
+> A unified platform to collect, process, analyze recommendation events and power business + engineering dashboards at 2B+ events/day scale.
+
+[columns]
+[col][metric label="Daily Events" value="2B+" color=blue][/col]
+[col][metric label="Real-Time Latency" value="<500ms" color=green][/col]
+[col][metric label="Pipeline Modes" value="Batch + Stream" color=purple][/col]
+[col][metric label="Dashboard Types" value="BI + Eng" color=yellow][/col]
+[/columns]
+
+[divider]
+
+# 1. System Overview
+
+[section title="Core Objectives" style=card]
+[list style=check]
+- Ingest and process **2B+ clickstream events per day** from recommendation surfaces
+- Deliver **real-time CTR / CVR / revenue metrics** with sub-second freshness
+- Support both **streaming** (Flink/Kafka) and **batch** (Spark) pipelines
+- Detect **corrupted or missing fields** with automated data quality checks
+- Fire **data quality alerts** when SLAs are breached
+- Power **BI dashboards** for business stakeholders (GMV, CTR, CVR)
+- Enable **historical analysis** with a queryable data warehouse
+- Monitor **ML feature freshness** for recommendation model health
+[/list]
+[/section]
+
+[divider]
+
+# 2. High-Level Architecture
+
+[diagram
+flowchart TD
+    A[User Clicks / Impressions] --> B[Event Collector SDK]
+    B --> C[Kafka — Raw Events]
+    C --> D[Flink Stream Processor]
+    C --> E[Spark Batch Processor]
+    D --> F[Real-Time Metrics Store\nRedis / Druid]
+    E --> G[Data Warehouse\nSnowflake / BigQuery]
+    F --> H[Engineering Dashboard\nGrafana]
+    G --> I[BI Dashboard\nTableau / Superset]
+    D --> J[Data Quality Engine]
+    E --> J
+    J --> K[Alert Manager\nPagerDuty / Slack]
+    G --> L[ML Feature Store\nFeast / Tecton]
+    L --> M[Recommendation Model]
+]
+
+[divider]
+
+# 3. Data Ingestion Layer
+
+## 3.1 Event Schema
+
+[section title="Recommendation Event — Required Fields" style=card]
+[table cols="Field,Type,Description,Required"
+  event_id        | UUID    | Unique event identifier              | Yes
+  user_id         | STRING  | Hashed user identifier               | Yes
+  item_id         | STRING  | Recommended item SKU                 | Yes
+  event_type      | ENUM    | impression / click / add_to_cart / purchase | Yes
+  timestamp       | INT64   | Unix epoch ms                        | Yes
+  session_id      | STRING  | Browser/app session                  | Yes
+  rec_model_ver   | STRING  | Model version that served the result | Yes
+  position        | INT     | Rank position in recommendation list | Yes
+  revenue         | FLOAT   | Transaction value (purchase only)    | No
+  page_context    | STRING  | Homepage / PDP / Cart                | No
+]
+[/section]
+
+## 3.2 Ingestion Pipeline
+
+[diagram
+flowchart LR
+    A[Mobile SDK] --> D[API Gateway\nKong]
+    B[Web SDK] --> D
+    C[Server Events] --> D
+    D --> E[Kafka\n32 partitions\n3x replication]
+    E --> F[Schema Registry\nAvro]
+]
+
+[columns]
+[col]
+[section title="Kafka Config" style=card]
+[table cols="Parameter,Value"
+  Topics            | raw.events / validated.events / dlq.events
+  Partitions        | 32 per topic
+  Retention         | 7 days
+  Throughput target | 2.5M events/min peak
+  Replication       | 3x
+]
+[/section]
+[/col]
+[col]
+[section title="Throughput Estimate" style=card]
+[metric label="Peak Events/sec" value="28000" color=blue]
+[metric label="Avg Event Size" value="~800B" color=gray]
+[metric label="Daily Volume" value="~1.8TB raw" color=purple]
+[progress label="Kafka Capacity Used (peak)" value=68 color=yellow]
+[/section]
+[/col]
+[/columns]
+
+[divider]
+
+# 4. Stream Processing — Real-Time Pipeline
+
+[diagram
+flowchart LR
+    A[Kafka\nraw.events] --> B[Flink Job 1\nValidation & Enrichment]
+    B --> C[Kafka\nvalidated.events]
+    B --> D[Kafka\ndlq.events]
+    C --> E[Flink Job 2\nMetric Aggregation]
+    E --> F[Druid\nOLAP Store]
+    E --> G[Redis\nLive Counters]
+]
+
+## 4.1 Flink Job: Validation & Enrichment
+
+[section title="Validation Rules Applied Per Event" style=card]
+[list style=check]
+- Check all required fields are non-null and correctly typed
+- Validate `event_type` against allowed enum values
+- Reject events with `timestamp` drift > 10 minutes from server time
+- Enrich `user_id` with user segment from Redis lookup (age group, tier)
+- Enrich `item_id` with category and brand from item catalog cache
+- Route invalid events to `dlq.events` topic with failure reason tag
+[/list]
+[/section]
+
+## 4.2 Flink Job: Real-Time Metric Aggregation
+
+[table cols="Metric,Window,Sink,Use Case"
+  CTR (clicks/impressions) | 1min / 5min tumbling  | Druid + Redis | Live dashboard
+  CVR (purchases/clicks)   | 5min / 15min tumbling | Druid         | Conversion monitoring
+  Revenue per model        | 5min tumbling          | Druid         | A/B experiment tracking
+  DLQ rate                 | 1min tumbling          | Redis + Alert | Data quality alerting
+  P99 event latency        | 30s sliding            | Redis         | Eng health monitoring
+  Feature freshness lag    | 1min tumbling          | Redis         | ML model health
+]
+
+[columns]
+[col][kpi label="Target CTR Latency" value="<2min" target="<2min" trend=0% color=green][/col]
+[col][kpi label="Stream Processing SLA" value="99.9%" target="99.9%" trend=+0.1% color=green][/col]
+[col][kpi label="DLQ Rate SLA" value="<0.1%" target="<0.1%" trend=-0.02% color=green][/col]
+[/columns]
+
+[divider]
+
+# 5. Batch Processing — Historical Pipeline
+
+[diagram
+flowchart LR
+    A[Kafka\nraw.events] --> B[S3 / GCS\nRaw Data Lake\nParquet/day]
+    B --> C[Spark ETL\nHourly + Daily]
+    C --> D[Data Warehouse\nSnowflake / BigQuery]
+    D --> E[dbt Models\nBusiness Layer]
+    E --> F[BI Dashboard\nTableau / Superset]
+    E --> G[ML Feature Store\nFeast / Tecton]
+]
+
+## 5.1 Spark Batch Jobs Schedule
+
+[timeline color=blue]
+- T+00:05: Hourly micro-batch — Spark reads S3 partition, validates schema, writes to DW staging
+- T+01:00: Hourly aggregation — CTR/CVR/revenue rolled up per hour per model version
+- T+06:00: Daily full refresh — Recompute 30-day cohort metrics, funnel analysis
+- T+07:00: ML feature batch — Recompute collaborative-filtering features, write to Feature Store
+- T+08:00: dbt run — Refresh business-layer models for BI dashboards
+[/timeline]
+
+## 5.2 Data Warehouse Schema (Star Schema)
+
+[section title="Core Tables" style=card]
+[table cols="Table,Type,Grain,Retention"
+  fact_rec_events       | Fact        | 1 row per event         | 2 years
+  fact_rec_daily        | Fact (agg)  | model × date × category | 3 years
+  dim_item              | Dimension   | 1 row per item          | Current
+  dim_user_segment      | Dimension   | 1 row per user tier     | Current
+  dim_model_version     | Dimension   | 1 row per model deploy  | Permanent
+  dim_date              | Dimension   | 1 row per date          | Permanent
+]
+[/section]
+
+[divider]
+
+# 6. Data Quality & Alerting
+
+## 6.1 Data Quality Engine
+
+[diagram
+flowchart TD
+    A[Validated Events Stream] --> B[Quality Rule Engine\nFlink / Great Expectations]
+    B --> C{Pass?}
+    C -- Yes --> D[Metrics Store]
+    C -- No --> E[DLQ + Quality Event]
+    E --> F[Alert Manager]
+    F --> G[PagerDuty\nP1 — Data Outage]
+    F --> H[Slack\nP2 — Quality Degradation]
+    F --> I[Dashboard Warning\nP3 — Anomaly]
+]
+
+## 6.2 Quality Rules Catalog
+
+[tabs]
+[tab title="Schema Checks"]
+[table cols="Rule,Threshold,Action"
+  Null event_id rate       | >0.01%  | P1 Alert + pause ingestion
+  Null user_id rate        | >0.5%   | P2 Alert
+  Invalid event_type       | >0.1%   | P2 Alert + route to DLQ
+  Timestamp drift >10min   | >1%     | P2 Alert
+  Missing revenue on purchase | >0.01% | P1 Alert
+]
+[/tab]
+[tab title="Volume Checks"]
+[table cols="Rule,Threshold,Action"
+  Events/min drop >50%     | vs 7-day avg  | P1 Alert
+  Events/min drop >20%     | vs 7-day avg  | P2 Alert
+  CTR anomaly (z-score)    | >3 sigma      | P2 Alert
+  Zero events >2min        | Any topic     | P1 Alert
+  DLQ rate spike           | >0.5%         | P2 Alert
+]
+[/tab]
+[tab title="Freshness Checks"]
+[table cols="Rule,Threshold,Action"
+  Stream lag behind wall clock | >5min    | P1 Alert
+  Hourly batch delay           | >30min   | P2 Alert
+  Daily batch delay            | >2hr     | P2 Alert
+  Feature store staleness      | >1hr     | P2 Alert
+  DW table not updated         | >2hr     | P2 Alert
+]
+[/tab]
+[/tabs]
+
+[callout icon=⚠️ title="Alert Routing Policy" text="P1 alerts page on-call engineer immediately via PagerDuty. P2 alerts post to #data-quality Slack channel. P3 anomalies surface as dashboard warning banners only. All alerts auto-attach a runbook link." color=yellow]
+
+[divider]
+
+# 7. Dashboards
+
+## 7.1 Business Dashboard (BI — Tableau / Superset)
+
+[columns]
+[col]
+[section title="Key Business KPIs" style=card]
+[kpi label="Overall CTR" value="4.2%" target="4.5%" trend=+0.3% color=blue]
+[kpi label="CVR" value="2.1%" target="2.5%" trend=+0.1% color=blue]
+[kpi label="Revenue via Rec" value="$1.8M/day" target="$2M/day" trend=+8% color=green]
+[kpi label="Rec Coverage" value="72%" target="80%" trend=+2% color=yellow]
+[/section]
+[/col]
+[col]
+[section title="Model Performance" style=card]
+[chart type=bar title="CTR by Model Version"
+  v1.2=3.8 v1.3=4.1 v1.4=4.2 v1.5=4.5
+]
+[/section]
+[/col]
+[/columns]
+
+[chart type=line title="Daily Revenue Attributed to Recommendations (7-day)"
+  Mon=1600000 Tue=1720000 Wed=1690000 Thu=1810000 Fri=1950000 Sat=2100000 Sun=1800000
+]
+
+[columns]
+[col]
+[chart type=pie title="Event Type Distribution"
+  Impression=82 Click=12 AddToCart=4 Purchase=2
+]
+[/col]
+[col]
+[chart type=bar title="CVR by User Segment"
+  NewUser=0.8 Returning=2.4 VIP=5.1 AtRisk=1.2
+]
+[/col]
+[/columns]
+
+## 7.2 Engineering Dashboard (Grafana)
+
+[columns]
+[col]
+[section title="Pipeline Health" style=card]
+[metric label="Kafka Consumer Lag" value="<5K msgs" color=green]
+[metric label="Flink Checkpoint Interval" value="30s" color=green]
+[metric label="Spark Job P99 Duration" value="22min" color=yellow]
+[metric label="DLQ Rate (live)" value="0.04%" color=green]
+[/section]
+[/col]
+[col]
+[section title="Infrastructure" style=card]
+[progress label="Kafka Disk Usage" value=61 color=green]
+[progress label="Flink TM Memory" value=74 color=yellow]
+[progress label="Druid Query Cache Hit" value=88 color=green]
+[progress label="Redis Memory" value=55 color=green]
+[/section]
+[/col]
+[/columns]
+
+[chart type=line title="Real-Time Event Throughput (events/sec)"
+  T0=24000 T5=26500 T10=27800 T15=28100 T20=27600 T25=25900 T30=24800
+]
+
+[divider]
+
+# 8. ML Feature Freshness Monitoring
+
+[section title="Feature Store Design" style=card]
+[diagram
+flowchart LR
+    A[Batch Features\nSpark — daily] --> C[Feature Store\nFeast / Tecton]
+    B[Stream Features\nFlink — 1min] --> C
+    C --> D[Online Store\nRedis — serving]
+    C --> E[Offline Store\nS3 + DW — training]
+    D --> F[Recommendation\nModel Server]
+]
+[/section]
+
+## 8.1 Feature Freshness SLAs
+
+[table cols="Feature Group,Update Freq,Max Allowed Staleness,Alert Threshold"
+  User interaction history  | 1 min stream  | 5 min   | >3 min lag
+  Item popularity scores    | 5 min stream  | 15 min  | >10 min lag
+  User-item affinity matrix | Hourly batch  | 2 hrs   | >90 min lag
+  Collaborative filter emb  | Daily batch   | 26 hrs  | >25 hr lag
+  User demographic features | Daily batch   | 26 hrs  | >25 hr lag
+]
+
+[columns]
+[col][metric label="Online Feature P99 Latency" value="3ms" color=green][/col]
+[col][metric label="Feature Freshness SLA Met" value="99.7%" color=green][/col]
+[col][metric label="Training/Serving Skew Alerts" value="0 active" color=green][/col]
+[/columns]
+
+[alert type=info text="Feature freshness metrics are published to Grafana and compared against a rolling 7-day baseline. Any staleness breach automatically blocks model promotion in the CI/CD pipeline."]
+
+[divider]
+
+# 9. Technology Stack
+
+[tabs]
+[tab title="Ingestion"]
+[table cols="Component,Technology,Purpose"
+  Event SDK          | Custom JS/iOS/Android | Client-side event capture
+  API Gateway        | Kong                  | Rate limiting, auth, routing
+  Message Broker     | Apache Kafka          | Durable event streaming
+  Schema Registry    | Confluent SR (Avro)   | Schema enforcement and evolution
+]
+[/tab]
+[tab title="Processing"]
+[table cols="Component,Technology,Purpose"
+  Stream Processing  | Apache Flink 1.18     | Real-time metrics and validation
+  Batch Processing   | Apache Spark 3.5      | Historical aggregation and ETL
+  Orchestration      | Apache Airflow        | DAG scheduling for batch jobs
+  Transformation     | dbt                   | Business-layer SQL models
+]
+[/tab]
+[tab title="Storage"]
+[table cols="Component,Technology,Purpose"
+  Raw Data Lake      | S3 / GCS (Parquet)    | Immutable event archive
+  OLAP Store         | Apache Druid          | Sub-second real-time queries
+  Live Counters      | Redis Cluster         | Real-time metric serving
+  Data Warehouse     | Snowflake / BigQuery  | Historical analytics and BI
+  Feature Store      | Feast + Tecton        | ML feature serving and training
+]
+[/tab]
+[tab title="Dashboards & Alerts"]
+[table cols="Component,Technology,Purpose"
+  Engineering Board  | Grafana               | Pipeline health, infra metrics
+  BI Dashboard       | Tableau / Superset    | Business KPIs and reporting
+  Alerting           | PagerDuty + Slack     | Incident and quality alerts
+  Data Quality       | Great Expectations    | Rule-based data validation
+  Tracing            | OpenTelemetry + Jaeger | Distributed pipeline tracing
+]
+[/tab]
+[/tabs]
+
+[divider]
+
+# 10. Scalability & SLA Summary
+
+[columns]
+[col]
+[section title="Throughput Targets" style=card]
+[kpi label="Daily Events" value="2B+" target="2B" trend=+5% color=blue]
+[kpi label="Peak Throughput" value="28K/sec" target="30K/sec" trend=+8% color=green]
+[kpi label="Stream End-to-End" value="<500ms" target="<500ms" trend=0% color=green]
+[kpi label="Batch SLA" value="<30min" target="<30min" trend=-5% color=green]
+[/section]
+[/col]
+[col]
+[section title="Reliability Targets" style=card]
+[kpi label="Ingestion Uptime" value="99.99%" target="99.99%" trend=0% color=green]
+[kpi label="Data Completeness" value=">99.9%" target="99.9%" trend=+0.02% color=green]
+[kpi label="DLQ Rate" value="<0.1%" target="<0.1%" trend=-0.02% color=green]
+[kpi label="Feature Freshness SLA" value="99.7%" target="99.5%" trend=+0.2% color=green]
+[/section]
+[/col]
+[/columns]
+
+[section title="Key Design Decisions" style=card]
+[list style=numbered]
+- **Lambda Architecture** — Flink for speed layer (real-time), Spark for batch layer (accuracy), Druid/DW as serving layer satisfies both latency and historical query needs
+- **Schema Registry with Avro** — Enforces schema evolution contracts at ingestion time, preventing downstream breakage from producer changes
+- **DLQ-first validation** — Invalid events are never silently dropped; they're routed to `dlq.events` for replay after fixes, ensuring no data loss
+- **Feature freshness gating** — Model promotion in CI/CD is blocked if any feature group breaches its freshness SLA, preventing stale-feature degradation in production
+- **Tiered alerting (P1/P2/P3)** — Reduces alert fatigue by separating actionable outages (P1) from quality degradation (P2) and monitoring anomalies (P3)
+[/list]
+[/section]
+
+[callout icon=🚀 title="Next Steps" text="Phase 1: Deploy Kafka + Flink stream pipeline with validation. Phase 2: Build Spark batch ETL and DW models. Phase 3: Launch BI + Grafana dashboards. Phase 4: Integrate Feature Store with ML model CI/CD." color=blue]
