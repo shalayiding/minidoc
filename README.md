@@ -12,9 +12,13 @@ A compact DSL that compiles to polished, self-contained HTML — with charts, di
 
 [English](README.md) · [中文](README_zh.md)
 
-| Example | Markdown | minidoc DSL | Live HTML |
-|---------|----------|-------------|-----------|
-| URL Shortener — System Design | [.md](benchmark/url_shortener/url_shortener_system_design.md) | [.minidoc](benchmark/url_shortener/url_shortener_system_design.minidoc) | [→ Open](https://shalayiding.github.io/minidoc/url_shortener.html) |
+| Example | Audience | Markdown | minidoc DSL | Live HTML |
+|---------|----------|----------|-------------|-----------|
+| URL Shortener — System Design | Engineering | [.md](benchmark/url_shortener/url_shortener_system_design.md) | [.minidoc](benchmark/url_shortener/url_shortener_system_design.minidoc) | [→ Open](https://shalayiding.github.io/minidoc/url_shortener.html) |
+| Q3 Business Review | Executive | [.md](showcase/q3_business_report.md) | [.minidoc](showcase/q3_business_report.minidoc) | [→ Open](https://shalayiding.github.io/minidoc/q3_business_report.html) |
+| Incident Postmortem | DevOps | [.md](showcase/incident_postmortem.md) | [.minidoc](showcase/incident_postmortem.minidoc) | [→ Open](https://shalayiding.github.io/minidoc/incident_postmortem.html) |
+| Sales Pipeline Dashboard | Sales | [.md](showcase/sales_pipeline.md) | [.minidoc](showcase/sales_pipeline.minidoc) | [→ Open](https://shalayiding.github.io/minidoc/sales_pipeline.html) |
+| ML Experiment Log | Data Science | [.md](showcase/ml_experiment.md) | [.minidoc](showcase/ml_experiment.minidoc) | [→ Open](https://shalayiding.github.io/minidoc/ml_experiment.html) |
 
 </div>
 

@@ -12,9 +12,13 @@
 
 [English](README.md) · [中文](README_zh.md)
 
-| 示例 | Markdown | minidoc DSL | 在线 HTML |
-|------|----------|-------------|-----------|
-| URL 短链系统设计 | [.md](benchmark/url_shortener/url_shortener_system_design.md) | [.minidoc](benchmark/url_shortener/url_shortener_system_design.minidoc) | [→ 打开](https://shalayiding.github.io/minidoc/url_shortener.html) |
+| 示例 | 受众 | Markdown | minidoc DSL | 在线 HTML |
+|------|------|----------|-------------|-----------|
+| URL 短链系统设计 | 工程师 | [.md](benchmark/url_shortener/url_shortener_system_design.md) | [.minidoc](benchmark/url_shortener/url_shortener_system_design.minidoc) | [→ 打开](https://shalayiding.github.io/minidoc/url_shortener.html) |
+| Q3 业务季报 | 管理层 | [.md](showcase/q3_business_report.md) | [.minidoc](showcase/q3_business_report.minidoc) | [→ 打开](https://shalayiding.github.io/minidoc/q3_business_report.html) |
+| 故障复盘 | DevOps | [.md](showcase/incident_postmortem.md) | [.minidoc](showcase/incident_postmortem.minidoc) | [→ 打开](https://shalayiding.github.io/minidoc/incident_postmortem.html) |
+| 销售漏斗看板 | 销售团队 | [.md](showcase/sales_pipeline.md) | [.minidoc](showcase/sales_pipeline.minidoc) | [→ 打开](https://shalayiding.github.io/minidoc/sales_pipeline.html) |
+| ML 实验追踪 | 数据科学 | [.md](showcase/ml_experiment.md) | [.minidoc](showcase/ml_experiment.minidoc) | [→ 打开](https://shalayiding.github.io/minidoc/ml_experiment.html) |
 
 </div>
 

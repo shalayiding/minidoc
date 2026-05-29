@@ -1,0 +1,140 @@
+@doc title="ML Experiment — Churn Prediction v3" theme=light
+
+# ML Experiment Log — Churn Prediction v3
+
+> Project: Customer Retention · Run ID: exp-2025-0912 · Author: @ml-team
+
+[columns]
+[col]
+[metric label="Best AUC-ROC" value="0.923" trend=+3.1% color=green]
+[/col]
+[col]
+[metric label="F1 Score" value="0.871" trend=+2.4% color=blue]
+[/col]
+[col]
+[metric label="Precision" value="0.889" color=blue]
+[/col]
+[col]
+[metric label="Recall" value="0.854" color=purple]
+[/col]
+[/columns]
+
+[callout icon=🏆 title="Best model: XGBoost with SMOTE + feature selection" text="Outperforms production baseline (v2 LightGBM) by +3.1% AUC-ROC. Recommended for A/B test deployment targeting high-risk segment (top 15% churn probability)." color=green]
+
+[divider]
+
+[tabs]
+[tab title="Model Comparison"]
+
+## Model Comparison
+
+[table cols="Model,AUC-ROC,F1,Precision,Recall,Train Time,Notes"
+  Logistic Regression (baseline) | 0.831 | 0.802 | 0.819 | 0.786 | 12s   | —
+  Random Forest                  | 0.874 | 0.838 | 0.851 | 0.825 | 4m 2s | —
+  LightGBM v2 (production)       | 0.892 | 0.847 | 0.863 | 0.832 | 1m 18s | current prod
+  XGBoost default                | 0.901 | 0.858 | 0.872 | 0.844 | 2m 44s | —
+  **XGBoost + SMOTE + FS**       | **0.923** | **0.871** | **0.889** | **0.854** | 3m 12s | **winner**
+  Neural Net (MLP)               | 0.908 | 0.861 | 0.874 | 0.849 | 18m 5s | not worth cost
+]
+
+[chart type=bar title="AUC-ROC by Model"
+  LogReg=0.831 RandomForest=0.874 LightGBM_Prod=0.892 XGBoost=0.901 XGBoost_SMOTE=0.923 MLP=0.908
+]
+
+[/tab]
+[tab title="Feature Importance"]
+
+## Top Features — XGBoost + SMOTE
+
+[table cols="Rank,Feature,Importance,Description"
+  1  | days_since_last_login      | 0.182 | Recency signal — strongest predictor
+  2  | support_tickets_30d        | 0.147 | Friction indicator
+  3  | feature_adoption_score     | 0.134 | Engagement breadth
+  4  | mrr_change_90d             | 0.118 | Expansion/contraction signal
+  5  | api_calls_trend_30d        | 0.096 | Usage velocity
+  6  | seats_utilization_pct      | 0.089 | Team adoption
+  7  | nps_score_last             | 0.074 | Satisfaction signal
+  8  | contract_months_remaining  | 0.068 | Renewal proximity
+  9  | onboarding_completion_pct  | 0.052 | Early health indicator
+  10 | billing_failure_count_90d  | 0.040 | Payment health
+]
+
+[chart type=doughnut title="Feature Category Contribution"
+  Engagement=41 Financial=27 Support=19 Satisfaction=13
+]
+
+[/tab]
+[tab title="Training Details"]
+
+## Data & Training Setup
+
+[columns]
+[col]
+[section title="Dataset" style=card]
+[metric label="Training samples" value="84,210" color=blue]
+[metric label="Test samples" value="21,053" color=blue]
+[metric label="Churn rate (raw)" value="8.3%" color=yellow]
+[metric label="Churn rate (SMOTE)" value="30%" color=green]
+[/section]
+[/col]
+[col]
+[section title="Hyperparameters" style=card]
+[metric label="n_estimators" value="450" color=gray]
+[metric label="max_depth" value="6" color=gray]
+[metric label="learning_rate" value="0.05" color=gray]
+[metric label="subsample" value="0.8" color=gray]
+[/section]
+[/col]
+[/columns]
+
+[code lang=python title="Training pipeline"
+from xgboost import XGBClassifier
+from imblearn.over_sampling import SMOTE
+from sklearn.feature_selection import SelectFromModel
+
+# SMOTE for class imbalance
+sm = SMOTE(sampling_strategy=0.3, random_state=42)
+X_train_res, y_train_res = sm.fit_resample(X_train, y_train)
+
+# Feature selection via LightGBM importance
+selector = SelectFromModel(lgb_model, threshold="1.25*mean")
+X_train_sel = selector.transform(X_train_res)
+
+# Final XGBoost
+model = XGBClassifier(
+    n_estimators=450,
+    max_depth=6,
+    learning_rate=0.05,
+    subsample=0.8,
+    eval_metric="auc",
+    early_stopping_rounds=20,
+)
+model.fit(X_train_sel, y_train_res,
+          eval_set=[(X_val_sel, y_val)])
+]
+
+[/tab]
+[tab title="Next Steps"]
+
+## Deployment Plan
+
+[timeline color=green]
+- Week 1: Shadow mode deployment — score all customers daily, no action taken
+- Week 2: A/B test — top 15% churn risk: 50% get proactive CS outreach
+- Week 3: Review A/B results — measure 30-day retention lift
+- Week 4: Full rollout if lift >5% reduction in churn rate
+[/timeline]
+
+[section title="Success Criteria" style=card]
+[list style=check]
+- 30-day churn rate in treatment group reduced by ≥5% vs control
+- False positive rate (flagged as churn risk, did not churn) stays below 25%
+- No increase in CS team escalation rate from over-triggering
+- Model inference latency p99 < 50ms in production
+[/list]
+[/section]
+
+[alert type=info text="Experiment tracking in MLflow: run ID `exp-2025-0912`. Model artifact registered as `churn-prediction-v3` in staging. Promotion to production requires data science lead approval."]
+
+[/tab]
+[/tabs]

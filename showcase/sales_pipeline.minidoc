@@ -1,0 +1,111 @@
+@doc title="Sales Pipeline — Q4 2025" theme=light
+
+# Sales Pipeline Dashboard
+
+> Q4 2025 · Updated weekly · Owner: Revenue Operations
+
+[columns]
+[col]
+[kpi label="Pipeline Value" value="$3.2M" target="$2.8M" trend=+14% color=green]
+[/col]
+[col]
+[kpi label="Weighted Pipeline" value="$1.1M" target="$980K" trend=+12% color=blue]
+[/col]
+[col]
+[kpi label="Deals in Stage 3+" value="24" target="20" trend=+4 color=purple]
+[/col]
+[col]
+[kpi label="Avg Deal Size" value="$48K" target="$42K" trend=+14% color=green]
+[/col]
+[/columns]
+
+[divider]
+
+[tabs]
+[tab title="Pipeline Overview"]
+
+## Pipeline by Stage
+
+[chart type=bar title="Deal Count by Stage"
+  Prospecting=41 Discovery=28 Demo=19 Proposal=14 Negotiation=9 Legal=5 Closed_Won=3
+]
+
+[table cols="Stage,Deals,Total Value,Avg Size,Win Rate"
+  Prospecting  | 41 | $620K   | $15K | —
+  Discovery    | 28 | $840K   | $30K | —
+  Demo         | 19 | $760K   | $40K | 38%
+  Proposal     | 14 | $560K   | $40K | 52%
+  Negotiation  |  9 | $288K   | $32K | 71%
+  Legal        |  5 | $195K   | $39K | 89%
+  Closed Won   |  3 | $127K   | $42K | —
+]
+
+[/tab]
+[tab title="Top Deals"]
+
+## Top 10 Deals in Pipeline
+
+[table cols="Account,Stage,ACV,Close Date,Owner,Risk"
+  Acme Corp       | Negotiation | $120K | Oct 15 | Sarah K. | 🟢 Low
+  GlobalTech Inc  | Legal       | $95K  | Oct 8  | Marcus R. | 🟢 Low
+  Meridian Health | Proposal    | $88K  | Oct 31 | Priya S. | 🟡 Medium
+  Nexus Dynamics  | Negotiation | $75K  | Nov 5  | Sarah K. | 🟢 Low
+  Vertex Systems  | Legal       | $68K  | Oct 22 | James L. | 🟢 Low
+  Orbit Analytics | Demo        | $62K  | Nov 15 | Marcus R. | 🟡 Medium
+  Cascade Retail  | Proposal    | $58K  | Nov 8  | Priya S. | 🔴 High
+  Apex Financial  | Demo        | $55K  | Nov 20 | James L. | 🟡 Medium
+  Nova Logistics  | Negotiation | $52K  | Oct 28 | Sarah K. | 🟢 Low
+  Pinnacle SaaS   | Proposal    | $48K  | Nov 12 | Marcus R. | 🟡 Medium
+]
+
+[callout icon=⚠️ title="At-Risk Deal: Cascade Retail" text="Champion left the company. No executive sponsor identified. Deal at risk of pushing to Q1. Sarah to schedule call with new VP of Engineering by Oct 10." color=red]
+
+[/tab]
+[tab title="Rep Performance"]
+
+## Rep Leaderboard — Q4 MTD
+
+[table cols="Rep,Pipeline,Closed MTD,Quota,Attainment"
+  Sarah K.   | $485K | $127K | $300K | 42%
+  Marcus R.  | $412K | $88K  | $300K | 29%
+  Priya S.   | $398K | $62K  | $250K | 25%
+  James L.   | $355K | $45K  | $250K | 18%
+]
+
+[chart type=pie title="Pipeline Share by Rep"
+  Sarah=33 Marcus=28 Priya=27 James=12
+]
+
+[/tab]
+[tab title="Forecast"]
+
+## Q4 Forecast
+
+[columns]
+[col]
+[section title="Commit" style=card]
+[metric label="Deals" value="8" color=green]
+[metric label="Value" value="$336K" color=green]
+[progress label="vs Quota ($1.2M)" value=28 color=green]
+[/section]
+[/col]
+[col]
+[section title="Best Case" style=card]
+[metric label="Deals" value="19" color=blue]
+[metric label="Value" value="$748K" color=blue]
+[progress label="vs Quota ($1.2M)" value=62 color=blue]
+[/section]
+[/col]
+[col]
+[section title="Pipeline" style=card]
+[metric label="Deals" value="36" color=purple]
+[metric label="Value" value="$1.4M" color=purple]
+[progress label="vs Quota ($1.2M)" value=117 color=purple]
+[/section]
+[/col]
+[/columns]
+
+[alert type=warning text="Commit coverage is below target. 4 deals in Legal stage ($195K) expected to close by Oct 22 — if 2 slip to Q1, quarterly attainment drops to sub-60%."]
+
+[/tab]
+[/tabs]

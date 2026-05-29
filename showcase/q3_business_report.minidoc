@@ -1,0 +1,131 @@
+@doc title="Q3 2025 Business Review" theme=light
+
+# Q3 2025 Business Review
+
+> Prepared for board and executive team · Confidential · September 2025
+
+[columns]
+[col]
+[kpi label="ARR" value="$4.8M" target="$5.0M" trend=+18% color=green]
+[/col]
+[col]
+[kpi label="MRR" value="$400K" target="$420K" trend=+12% color=blue]
+[/col]
+[col]
+[kpi label="Churn Rate" value="1.8%" target="<2%" trend=-0.4% color=green]
+[/col]
+[col]
+[kpi label="NPS" value="67" target="60" trend=+9 color=purple]
+[/col]
+[/columns]
+
+[divider]
+
+[tabs]
+[tab title="Revenue"]
+
+## Revenue Performance
+
+[chart type=bar title="Monthly Recurring Revenue ($K)"
+  Jan=285 Feb=298 Mar=310 Apr=325 May=338 Jun=352 Jul=365 Aug=382 Sep=400
+]
+
+[columns]
+[col]
+[section title="By Segment" style=card]
+[progress label="Enterprise" value=58 color=blue target="$232K"]
+[progress label="SMB" value=32 color=green target="$128K"]
+[progress label="Startup" value=10 color=purple target="$40K"]
+[/section]
+[/col]
+[col]
+[section title="By Region" style=card]
+[progress label="North America" value=62 color=blue target="$248K"]
+[progress label="Europe" value=24 color=green target="$96K"]
+[progress label="Asia Pacific" value=14 color=yellow target="$56K"]
+[/section]
+[/col]
+[/columns]
+
+[/tab]
+[tab title="Growth"]
+
+## Customer Growth
+
+[chart type=line title="Cumulative Customers"
+  Jan=820 Feb=855 Mar=890 Apr=935 May=978 Jun=1020 Jul=1065 Aug=1108 Sep=1152
+]
+
+[columns]
+[col]
+[metric label="New Customers (Q3)" value="162" trend=+22% color=green]
+[/col]
+[col]
+[metric label="Expansion Revenue" value="$48K" trend=+31% color=blue]
+[/col]
+[col]
+[metric label="Logo Retention" value="94.2%" trend=+1.2% color=green]
+[/col]
+[/columns]
+
+[table cols="Cohort,Size,12-Month Retention,Expansion"
+  Q3 2024 | 148 customers | 91% | +18%
+  Q4 2024 | 163 customers | 89% | +22%
+  Q1 2025 | 171 customers | 88% | +19%
+  Q2 2025 | 157 customers | 87% | —
+]
+
+[/tab]
+[tab title="Product"]
+
+## Product Highlights
+
+[timeline color=blue]
+- July 2025: Launched AI-assisted onboarding — reduced time-to-value from 14 to 6 days
+- August 2025: Released API v3 — 3x throughput, adopted by 78% of enterprise accounts within 30 days
+- September 2025: SSO & SCIM provisioning GA — unblocked 12 enterprise deals in pipeline
+- September 2025: Mobile app hit 4.7★ App Store rating — 2,400 DAU
+[/timeline]
+
+[columns]
+[col]
+[metric label="Feature Adoption (API v3)" value="78%" color=blue]
+[/col]
+[col]
+[metric label="Avg Time-to-Value" value="6 days" trend=-57% color=green]
+[/col]
+[col]
+[metric label="Support Tickets" value="-34%" trend=-34% color=green]
+[/col]
+[/columns]
+
+[/tab]
+[tab title="Q4 Outlook"]
+
+## Q4 2025 Targets
+
+[columns]
+[col]
+[kpi label="ARR Target" value="$6.2M" target="$6.2M" color=blue]
+[/col]
+[col]
+[kpi label="New Logos" value="55" target="55" color=green]
+[/col]
+[col]
+[kpi label="NRR Target" value="118%" target="115%" color=purple]
+[/col]
+[/columns]
+
+[section title="Key Initiatives" style=card]
+[list style=check]
+- Close 3 enterprise deals currently in legal ($480K combined ACV)
+- Launch SOC 2 Type II certification — removes blocker for 8 pipeline accounts
+- Release self-serve analytics dashboard — reduce CS load by ~30%
+- Expand into APAC with Singapore office opening (November)
+[/list]
+[/section]
+
+[alert type=warning text="Pipeline coverage is 2.4x target. Key risk: two enterprise deals (combined $220K) dependent on SSO completion — now GA, legal review in progress."]
+
+[/tab]
+[/tabs]

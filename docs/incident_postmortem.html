@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Incident Postmortem — Payment Service Outage</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script><script>document.addEventListener("DOMContentLoaded",()=>hljs.highlightAll())</script>
+  
+  <style>
+    body { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem; }
+    details > summary { list-style: none; }
+    details > summary::-webkit-details-marker { display: none; }
+    details > summary::after { display: none; }
+    details > summary::marker { display: none; }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <h1>Incident Postmortem — Payment Service Outage</h1>
+<blockquote><p>Severity: P0 · Duration: 47 minutes · Date: 2025-09-12 · Author: Platform Team</p></blockquote>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem"><div><article style="border-left:4px solid #ef4444;padding:1rem 1.25rem;margin:0.5rem 0;border-radius:6px"><div style="font-size:0.8em;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em">Severity</div><div style="font-size:2rem;font-weight:700;color:#ef4444;line-height:1.2">P0</div></article></div>
+<div><article style="border-left:4px solid #ef4444;padding:1rem 1.25rem;margin:0.5rem 0;border-radius:6px"><div style="font-size:0.8em;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em">Duration</div><div style="font-size:2rem;font-weight:700;color:#ef4444;line-height:1.2">47 min</div></article></div>
+<div><article style="border-left:4px solid #f59e0b;padding:1rem 1.25rem;margin:0.5rem 0;border-radius:6px"><div style="font-size:0.8em;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em">Users Affected</div><div style="font-size:2rem;font-weight:700;color:#f59e0b;line-height:1.2">~12,400</div></article></div>
+<div><article style="border-left:4px solid #ef4444;padding:1rem 1.25rem;margin:0.5rem 0;border-radius:6px"><div style="font-size:0.8em;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em">Revenue Impact</div><div style="font-size:2rem;font-weight:700;color:#ef4444;line-height:1.2">~$31K</div></article></div></div>
+<div style="background:#fef2f2;border-left:4px solid #ef4444;padding:0.75rem 1rem;border-radius:4px;margin:0.75rem 0">❌ Payment processing was completely unavailable from 14:23 to 15:10 UTC on September 12, 2025. All checkout flows returned 503. Subscription renewals were queued and processed after recovery.</div>
+<hr style="margin:1.5rem 0;opacity:0.3">
+<h2>Timeline</h2>
+<div style="margin:1rem 0;padding-left:1.5rem;border-left:2px solid #ef444440"><div style="position:relative;margin-bottom:1.25rem;padding-left:0.25rem"><div style="position:absolute;left:-1.4rem;top:0.35rem;width:10px;height:10px;background:#ef4444;border-radius:50%;box-shadow:0 0 0 3px #ef444430"></div><div style="font-size:0.95em"><strong style="color:#ef4444">14</strong> — 23 UTC: Automated alert fired — payment-service p99 latency exceeded 5s threshold</div></div><div style="position:relative;margin-bottom:1.25rem;padding-left:0.25rem"><div style="position:absolute;left:-1.4rem;top:0.35rem;width:10px;height:10px;background:#ef4444;border-radius:50%;box-shadow:0 0 0 3px #ef444430"></div><div style="font-size:0.95em"><strong style="color:#ef4444">14</strong> — 26 UTC: On-call engineer acknowledged alert, began investigation</div></div><div style="position:relative;margin-bottom:1.25rem;padding-left:0.25rem"><div style="position:absolute;left:-1.4rem;top:0.35rem;width:10px;height:10px;background:#ef4444;border-radius:50%;box-shadow:0 0 0 3px #ef444430"></div><div style="font-size:0.95em"><strong style="color:#ef4444">14</strong> — 31 UTC: Identified connection pool exhaustion on payments-db-primary</div></div><div style="position:relative;margin-bottom:1.25rem;padding-left:0.25rem"><div style="position:absolute;left:-1.4rem;top:0.35rem;width:10px;height:10px;background:#ef4444;border-radius:50%;box-shadow:0 0 0 3px #ef444430"></div><div style="font-size:0.95em"><strong style="color:#ef4444">14</strong> — 38 UTC: Attempted connection pool increase — did not resolve, pool exhausted within 90s</div></div><div style="position:relative;margin-bottom:1.25rem;padding-left:0.25rem"><div style="position:absolute;left:-1.4rem;top:0.35rem;width:10px;height:10px;background:#ef4444;border-radius:50%;box-shadow:0 0 0 3px #ef444430"></div><div style="font-size:0.95em"><strong style="color:#ef4444">14</strong> — 44 UTC: Identified root cause: runaway analytics query holding locks on payments table</div></div><div style="position:relative;margin-bottom:1.25rem;padding-left:0.25rem"><div style="position:absolute;left:-1.4rem;top:0.35rem;width:10px;height:10px;background:#ef4444;border-radius:50%;box-shadow:0 0 0 3px #ef444430"></div><div style="font-size:0.95em"><strong style="color:#ef4444">14</strong> — 51 UTC: Killed offending query, connection pool recovered within 60s</div></div><div style="position:relative;margin-bottom:1.25rem;padding-left:0.25rem"><div style="position:absolute;left:-1.4rem;top:0.35rem;width:10px;height:10px;background:#ef4444;border-radius:50%;box-shadow:0 0 0 3px #ef444430"></div><div style="font-size:0.95em"><strong style="color:#ef4444">14</strong> — 58 UTC: Payment service health checks green, traffic restored gradually</div></div><div style="position:relative;margin-bottom:1.25rem;padding-left:0.25rem"><div style="position:absolute;left:-1.4rem;top:0.35rem;width:10px;height:10px;background:#ef4444;border-radius:50%;box-shadow:0 0 0 3px #ef444430"></div><div style="font-size:0.95em"><strong style="color:#ef4444">15</strong> — 10 UTC: Full traffic restored, incident resolved</div></div><div style="position:relative;margin-bottom:1.25rem;padding-left:0.25rem"><div style="position:absolute;left:-1.4rem;top:0.35rem;width:10px;height:10px;background:#ef4444;border-radius:50%;box-shadow:0 0 0 3px #ef444430"></div><div style="font-size:0.95em"><strong style="color:#ef4444">15</strong> — 45 UTC: Postmortem initiated, contributing factors documented</div></div></div>
+<hr style="margin:1.5rem 0;opacity:0.3">
+<h2>Root Cause</h2>
+<section style="background:var(--pico-card-background-color,#fff);border-radius:8px;padding:1.5rem;margin:1rem 0;box-shadow:0 1px 6px rgba(0,0,0,0.08);"><h3>What happened</h3><p>A new analytics report introduced in the v2.4.1 deploy (13:55 UTC) ran a full table scan on <code style="background:#f3f4f6;padding:0.15em 0.4em;border-radius:3px;font-size:0.88em;color:#e83e8c">payments</code> without a query timeout. The query held row-level locks for 28 minutes, causing connection pool exhaustion on the primary database. Payments service workers queued connections until the pool limit was hit, at which point all requests failed with 503.</p>
+<div style="background:#ef44440d;border:1px solid #ef444430;border-radius:8px;padding:1rem 1.25rem;margin:0.75rem 0;display:flex;gap:0.75rem;align-items:flex-start"><span style="font-size:1.3rem;line-height:1.4">🔍</span><div><div style="font-weight:600;color:#ef4444;margin-bottom:0.2rem">Contributing factors</div><div style="font-size:0.95em">1. No query timeout configured on the analytics read replica connection. 2. Analytics queries were running against primary instead of replica due to a misconfigured read preference. 3. No circuit breaker between analytics service and payments database.</div></div></div></section>
+<div style="border:1px solid #30363d;border-radius:8px;overflow:hidden;margin:1rem 0"><div style="background:#161b22;border-bottom:1px solid #30363d;padding:0.35rem 1rem;font-size:0.8em;color:#8b949e;font-family:monospace">Offending query (simplified)</div><pre style="margin:0;padding:0;overflow-x:auto;background:#0d1117"><code class="language-sql" style="border-radius:0;padding:1rem;display:block;background:#0d1117">SELECT
+u.id, u.email, p.amount, p.created_at,
+COUNT(r.id) as refund_count
+FROM payments p
+JOIN users u ON p.user_id = u.id
+LEFT JOIN refunds r ON r.payment_id = p.id
+WHERE p.created_at &gt; &#x27;2024-01-01&#x27;
+GROUP BY u.id, u.email, p.amount, p.created_at
+ORDER BY p.created_at DESC;
+-- Missing: statement_timeout, index on payments.created_at, read replica routing</code></pre></div>
+<hr style="margin:1.5rem 0;opacity:0.3">
+<h2>Impact Analysis</h2>
+<figure><table><thead><tr><th>Service</th><th>Impact</th><th>Duration</th></tr></thead><tbody><tr><td>Checkout flow</td><td>100% failure — 503 on all requests</td><td>47 min</td></tr><tr><td>Subscription renewals</td><td>Queued, not failed — processed post-recovery</td><td>47 min</td></tr><tr><td>Payment history API</td><td>Read-only, unaffected</td><td>—</td></tr><tr><td>Refund processing</td><td>Blocked — recovered automatically</td><td>47 min</td></tr><tr><td>Fraud detection</td><td>Unaffected — separate database</td><td>—</td></tr></tbody></table></figure>
+<div style="max-width:600px;margin:1.5rem auto"><canvas id="chart_18022278"></canvas><script>new Chart(document.getElementById("chart_18022278"),{type:"doughnut",data:{labels:["Checkout", "Subscription_Renewal", "Manual_Charge"],datasets:[{data:[61.0, 28.0, 11.0],backgroundColor:["#6366f1", "#22c55e", "#f59e0b"]}]},options:{responsive:true,plugins:{legend:{display:true},title:{display:true,text:"Affected Transaction Types"}}}})</script></div>
+<hr style="margin:1.5rem 0;opacity:0.3">
+<h2>Action Items</h2>
+<figure><table><thead><tr><th>Action</th><th>Owner</th><th>Priority</th><th>Due</th></tr></thead><tbody><tr><td>Add statement_timeout=30s to all analytics queries</td><td>@data-eng</td><td>P0</td><td>2025-09-13</td></tr><tr><td>Route analytics queries to read replica</td><td>@platform</td><td>P0</td><td>2025-09-14</td></tr><tr><td>Add circuit breaker between analytics and payments DB</td><td>@platform</td><td>P1</td><td>2025-09-20</td></tr><tr><td>Set up PagerDuty alert for connection pool >80%</td><td>@platform</td><td>P1</td><td>2025-09-18</td></tr><tr><td>Add load test for analytics queries in CI</td><td>@data-eng</td><td>P2</td><td>2025-09-30</td></tr><tr><td>Document query review checklist for PRs touching payments</td><td>@eng-lead</td><td>P2</td><td>2025-10-01</td></tr></tbody></table></figure>
+<hr style="margin:1.5rem 0;opacity:0.3">
+<h2>What Went Well</h2>
+<ul style="padding-left:0"><li style="list-style:none;margin:0.3rem 0">✅ Alert fired within 3 minutes of degradation starting</li><li style="list-style:none;margin:0.3rem 0">✅ On-call response time was under 5 minutes</li><li style="list-style:none;margin:0.3rem 0">✅ Subscription renewals were queued rather than dropped — no data loss</li><li style="list-style:none;margin:0.3rem 0">✅ Runbook for database connection issues was accurate and actionable</li><li style="list-style:none;margin:0.3rem 0">✅ Communication to customers sent within 15 minutes of detection</li></ul>
+<div style="background:#f0fdf4;border-left:4px solid #22c55e;padding:0.75rem 1rem;border-radius:4px;margin:0.75rem 0">✅ No data loss. All queued transactions processed successfully within 8 minutes of recovery. Customer-facing status page updated within 12 minutes of detection.</div>
+  </main>
+</body>
+</html>
