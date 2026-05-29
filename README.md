@@ -28,7 +28,7 @@ LLMs already generate reports, dashboards, and design docs — but the output is
 
 When you ask an LLM to produce a report, it has three options:
 
-**Option 1 — Generate Markdown.** Easy for the LLM, but the output is a wall of symbols. No charts, no diagrams, no layout. The reader has to mentally parse it. Hard to share with non-technical stakeholders.
+**Option 1 — Generate Markdown.** Easy for the LLM, but Markdown has limited expressiveness — charts, diagrams, tabs, and metric cards simply can't be represented. Everything degrades to tables and plain text. Hard to share with non-technical stakeholders.
 
 **Option 2 — Generate raw HTML.** The output looks good, but it costs 3× more tokens, and LLMs make frequent mistakes — unclosed tags, broken CSS units, broken JavaScript. Output quality varies every run.
 
