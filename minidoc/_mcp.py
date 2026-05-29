@@ -58,6 +58,29 @@ def render_and_open(dsl: str, output_path: str = "") -> str:
     return path
 
 
+@mcp.tool()
+def convert_file(input_path: str, output_path: str = "") -> str:
+    """Convert a .minidoc file to HTML.
+
+    input_path: path to the .minidoc source file (absolute or relative to cwd)
+    output_path: where to write the HTML; defaults to same directory and name as input
+    Returns the absolute path to the written HTML file.
+    """
+    src = Path(input_path).expanduser()
+    if not src.is_absolute():
+        src = Path.cwd() / src
+    if not src.exists():
+        raise FileNotFoundError(f"File not found: {src}")
+    dsl = src.read_text(encoding="utf-8")
+    if not output_path:
+        out = src.with_suffix(".html")
+    else:
+        out = _resolve_path(output_path)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(compile_to_html(dsl), encoding="utf-8")
+    return str(out)
+
+
 def main():
     mcp.run(transport="stdio")
 
