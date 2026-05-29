@@ -11,5 +11,5 @@ wheels/
 
 .DS_Store
 result/
-examples/*.html
+examples/
 markdown-compare/
